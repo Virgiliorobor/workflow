@@ -101,4 +101,4 @@ Workflow/
 
 ## Credits
 
-Built for the Clief Notes Weekly Competition #3 — and as a general-purpose tool for anyone who wants a structured AI workspace without knowing where to start.
+Built for the Clief Notes Weekly Competition #3 — and as a general-purpose tool for anyone who wants a structured AI workspace without knowing where to start. Developed by Virgilio Robinson.
