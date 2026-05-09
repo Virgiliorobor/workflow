@@ -312,7 +312,7 @@ window.ICM.app = (() => {
     const stages = state.answers.stages || [];
     return `
       <div class="stage-builder" id="q-input">
-        <p class="stage-builder-intro">These are the stages of your workspace. Rename them to match your workflow. Add or remove stages (2–5 recommended). Each stage gets a numbered folder and a stage contract.<br><small style="color:var(--text3)">Task trigger: what you'd say to Claude to start that stage (populates the routing table).</small></p>
+        <p class="stage-builder-intro">These are the stages of your workspace. Rename them to match your workflow. Add or remove stages (2–5 recommended). Each stage gets a numbered folder and a stage contract.<br><small class="stage-builder-hint">Task trigger: what you'd say to Claude to start that stage (populates the routing table).</small></p>
         <div class="stage-list" id="stage-list">
           ${stages.map((s, i) => renderStageRow(s, i, stages.length)).join('')}
         </div>
@@ -337,18 +337,23 @@ window.ICM.app = (() => {
     `;
   }
 
-  function rerenderStageBuilder() {
-    const el = document.getElementById('q-input');
-    if (!el) return;
-    el.outerHTML = renderStageBuilderHTML();
-    initStageBuilder();
+  // Updates only the stage rows and the add-button disabled state.
+  // The wrapper div (q-input) is never replaced, so event listeners on it persist.
+  function rerenderStageList() {
+    const list = document.getElementById('stage-list');
+    if (!list) return;
+    const stages = state.answers.stages;
+    list.innerHTML = stages.map((s, i) => renderStageRow(s, i, stages.length)).join('');
+    const addBtn = document.getElementById('btn-add-stage');
+    if (addBtn) addBtn.disabled = stages.length >= 5;
   }
 
   function initStageBuilder() {
-    const container = document.getElementById('stage-list');
-    if (!container) return;
+    const builder = document.getElementById('q-input'); // the .stage-builder wrapper div
+    if (!builder) return;
 
-    container.addEventListener('input', e => {
+    // All input changes via delegation — persists across rerenderStageList calls
+    builder.addEventListener('input', e => {
       const row = e.target.closest('.stage-row');
       if (!row) return;
       const index = parseInt(row.dataset.index);
@@ -372,37 +377,40 @@ window.ICM.app = (() => {
       if (field === 'description') state.answers.stages[index].description = e.target.value;
       if (field === 'task') state.answers.stages[index].task = e.target.value;
       if (field === 'note') state.answers.stages[index].note = e.target.value;
-
       saveState();
     });
 
-    container.addEventListener('click', e => {
+    // Remove and Add buttons via delegation on the same persistent wrapper
+    builder.addEventListener('click', e => {
       const removeBtn = e.target.closest('.btn-remove-stage');
-      if (!removeBtn) return;
-      const index = parseInt(removeBtn.dataset.index);
-      if (state.answers.stages.length <= 2) {
-        showToast('You need at least 2 stages.', 'warning');
+      if (removeBtn) {
+        if (state.answers.stages.length <= 2) {
+          showToast('You need at least 2 stages.', 'warning');
+          return;
+        }
+        const index = parseInt(removeBtn.dataset.index);
+        state.answers.stages.splice(index, 1);
+        state.answers.stages.forEach((s, i) => { s.id = String(i + 1).padStart(2, '0'); });
+        rerenderStageList();
+        saveState();
         return;
       }
-      state.answers.stages.splice(index, 1);
-      state.answers.stages.forEach((s, i) => { s.id = String(i + 1).padStart(2, '0'); });
-      rerenderStageBuilder();
-      saveState();
-    });
 
-    document.getElementById('btn-add-stage')?.addEventListener('click', () => {
-      if (state.answers.stages.length >= 5) return;
-      const num = state.answers.stages.length + 1;
-      state.answers.stages.push({
-        id: String(num).padStart(2, '0'),
-        slug: `stage-${num}`,
-        label: `Stage ${num}`,
-        description: '',
-        task: '',
-        note: ''
-      });
-      rerenderStageBuilder();
-      saveState();
+      const addBtn = e.target.closest('#btn-add-stage');
+      if (addBtn && !addBtn.disabled) {
+        if (state.answers.stages.length >= 5) return;
+        const num = state.answers.stages.length + 1;
+        state.answers.stages.push({
+          id: String(num).padStart(2, '0'),
+          slug: `stage-${num}`,
+          label: `Stage ${num}`,
+          description: '',
+          task: '',
+          note: ''
+        });
+        rerenderStageList();
+        saveState();
+      }
     });
   }
 
@@ -539,7 +547,7 @@ window.ICM.app = (() => {
       aiBtn.disabled = true;
       aiBtn.title = 'AI backend not running. Start backend/app.py to enable.';
     }
-    aiBtn.innerHTML = `✦ Improve with AI`;
+    aiBtn.innerHTML = `◇ Improve with AI`;
     aiBtn.addEventListener('click', showAIImproveFlow);
     actionsEl.insertBefore(aiBtn, document.getElementById('btn-download'));
 
@@ -568,9 +576,9 @@ window.ICM.app = (() => {
       header = document.createElement('div');
       header.className = 'file-tree-header';
       header.innerHTML = `
-        <span class="file-tree-label" style="padding:0;margin:0">Generated Files</span>
-        <div style="display:flex;gap:5px">
-          <button class="btn-skill-upload" id="btn-skill-creator" title="Create a new skill file">✦ Skill</button>
+        <span class="file-tree-label">Generated Files</span>
+        <div class="file-tree-header-actions">
+          <button class="btn-skill-upload" id="btn-skill-creator" title="Create a new skill file">◇ Skill</button>
           <button class="btn-skill-upload" id="btn-skill-upload" title="Upload .md skill files">↑ Import</button>
         </div>
       `;
@@ -608,19 +616,24 @@ window.ICM.app = (() => {
       if (isDir) {
         return `
           <div class="tree-dir" style="padding-left:${indent}px">
-            <span class="tree-icon dir-icon">📁</span>
+            <span class="tree-icon tree-icon-dir" aria-hidden="true"></span>
             <span class="dir-name">${name}/</span>
           </div>
           ${renderTreeNode(children, path, depth + 1)}
         `;
       } else {
-        const icon = name.endsWith('.md') ? '📄' : name.endsWith('.json') ? '{}' : '·';
+        let iconHtml = '<span class="tree-icon tree-icon-lines" aria-hidden="true"></span>';
+        if (name.endsWith('.json')) {
+          iconHtml = '<span class="tree-icon tree-icon-json" aria-hidden="true">{ }</span>';
+        } else if (!name.endsWith('.md')) {
+          iconHtml = '<span class="tree-icon tree-icon-dot">·</span>';
+        }
         const layer = getFileLayer(name, path);
         const isOverridden = !!state.fileOverrides[path];
         return `
           <div class="file-item${isOverridden ? ' has-override' : ''}" data-path="${path}" style="padding-left:${indent + 16}px">
             ${isOverridden ? '<span class="override-dot"></span>' : ''}
-            <span class="tree-icon">${icon}</span>
+            ${iconHtml}
             <span class="file-name">${name}</span>
             ${layer ? `<span class="layer-badge layer-${layer.toLowerCase().replace(' ','')}">${layer}</span>` : ''}
           </div>
@@ -682,7 +695,7 @@ window.ICM.app = (() => {
           ${hasOverride ? `<button class="btn-reset-file">Reset to generated</button>` : ''}
         </div>
       </div>
-      ${hasOverride ? `<div class="override-notice">✎ Manually edited — this version will be used in the ZIP export.</div>` : ''}
+      ${hasOverride ? `<div class="override-notice"><span class="override-notice-mark" aria-hidden="true"></span>Manually edited — this version will be used in the ZIP export.</div>` : ''}
       <pre class="preview-code">${escaped}</pre>
     `;
 
@@ -758,44 +771,44 @@ window.ICM.app = (() => {
     const overlay = document.createElement('div');
     overlay.className = 'ai-modal-overlay';
     overlay.innerHTML = `
-      <div class="ai-modal" style="max-width:560px">
+      <div class="ai-modal ai-modal-narrow">
         <div class="ai-modal-header">
           <h3>Create a Skill Starter</h3>
-          <button id="sc-close" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0 4px">×</button>
+          <button type="button" id="sc-close" class="ai-modal-close-btn" aria-label="Close">×</button>
         </div>
-        <div class="ai-modal-body" style="display:flex;flex-direction:column;gap:14px">
-          <p style="font-size:12px;color:var(--text2);margin:0">A skill starter is a reusable prompt template for a specific type of task. It loads the right context files and gives Claude a structured starting point every time.</p>
+        <div class="ai-modal-body ai-modal-body-stack">
+          <p class="skill-modal-intro">A skill starter is a reusable prompt template for a specific type of task. It loads the right context files and gives Claude a structured starting point every time.</p>
 
           <div>
-            <label style="font-size:11px;font-weight:700;color:var(--text3);display:block;margin-bottom:5px">SKILL NAME <span style="color:var(--red)">*</span></label>
-            <input id="sc-name" class="q-input" type="text" placeholder="e.g. Draft YouTube script, Review client proposal" style="font-size:13px;padding:9px 12px;width:100%">
+            <label class="skill-modal-field-label" for="sc-name">Skill name <span class="skill-modal-required">*</span></label>
+            <input id="sc-name" class="q-input skill-modal-input" type="text" placeholder="e.g. Draft YouTube script, Review client proposal">
           </div>
           <div>
-            <label style="font-size:11px;font-weight:700;color:var(--text3);display:block;margin-bottom:5px">WHAT DOES THIS SKILL DO?</label>
-            <textarea id="sc-purpose" class="q-input q-textarea" placeholder="e.g. Start the script-writing stage with the right context — reads research output and applies voice/format patterns." style="font-size:13px;padding:9px 12px;min-height:70px;width:100%"></textarea>
+            <label class="skill-modal-field-label" for="sc-purpose">What does this skill do?</label>
+            <textarea id="sc-purpose" class="q-input q-textarea skill-modal-textarea-md" placeholder="e.g. Start the script-writing stage with the right context — reads research output and applies voice/format patterns."></textarea>
           </div>
           <div>
-            <label style="font-size:11px;font-weight:700;color:var(--text3);display:block;margin-bottom:5px">TRIGGER PHRASE <span style="color:var(--text3)">(what you'd say to start it)</span></label>
-            <input id="sc-trigger" class="q-input" type="text" placeholder="e.g. Write the script for [topic] using the research in 02_script/output/" style="font-size:13px;padding:9px 12px;width:100%">
+            <label class="skill-modal-field-label" for="sc-trigger">Trigger phrase <span class="skill-modal-label-note">(what you'd say to start it)</span></label>
+            <input id="sc-trigger" class="q-input skill-modal-input" type="text" placeholder="e.g. Write the script for [topic] using the research in 02_script/output/">
           </div>
           <div>
-            <label style="font-size:11px;font-weight:700;color:var(--text3);display:block;margin-bottom:5px">FILES TO READ FIRST <span style="color:var(--text3)">(one per line)</span></label>
-            <textarea id="sc-reads" class="q-input q-textarea" placeholder="CLAUDE.md&#10;01_research/CONTEXT.md&#10;_config/voice-and-tone.md" style="font-size:13px;padding:9px 12px;min-height:70px;width:100%;font-family:monospace"></textarea>
+            <label class="skill-modal-field-label" for="sc-reads">Files to read first <span class="skill-modal-label-note">(one per line)</span></label>
+            <textarea id="sc-reads" class="q-input q-textarea skill-modal-textarea-md skill-modal-reads" placeholder="CLAUDE.md&#10;01_research/CONTEXT.md&#10;_config/voice-and-tone.md"></textarea>
           </div>
           <div>
-            <label style="font-size:11px;font-weight:700;color:var(--text3);display:block;margin-bottom:5px">OUTPUT DESCRIPTION</label>
-            <input id="sc-output" class="q-input" type="text" placeholder="e.g. A complete script in output/ ready for production" style="font-size:13px;padding:9px 12px;width:100%">
+            <label class="skill-modal-field-label" for="sc-output">Output description</label>
+            <input id="sc-output" class="q-input skill-modal-input" type="text" placeholder="e.g. A complete script in output/ ready for production">
           </div>
           <div>
-            <label style="font-size:11px;font-weight:700;color:var(--text3);display:block;margin-bottom:5px">CONSTRAINTS / SAFETY RULES <span style="color:var(--text3)">(one per line, optional)</span></label>
-            <textarea id="sc-constraints" class="q-input q-textarea" placeholder="Always load _config/constraints.md&#10;Do not invent facts not in the research output" style="font-size:13px;padding:9px 12px;min-height:60px;width:100%"></textarea>
+            <label class="skill-modal-field-label" for="sc-constraints">Constraints / safety rules <span class="skill-modal-label-note">(one per line, optional)</span></label>
+            <textarea id="sc-constraints" class="q-input q-textarea skill-modal-textarea-sm" placeholder="Always load _config/constraints.md&#10;Do not invent facts not in the research output"></textarea>
           </div>
         </div>
         <div class="ai-modal-footer">
           <button class="btn-secondary" id="sc-cancel">Cancel</button>
-          <button class="btn-secondary" id="sc-improve" title="${state.backendAvailable ? 'Improve fields with AI' : 'Backend not running'}"\
-            ${state.backendAvailable ? '' : 'disabled'} style="display:flex;align-items:center;gap:6px">
-            ✦ Improve with AI
+          <button class="btn-secondary skill-modal-improve-btn" id="sc-improve" title="${state.backendAvailable ? 'Improve fields with AI' : 'Backend not running'}"\
+            ${state.backendAvailable ? '' : 'disabled'}>
+            ◇ Improve with AI
           </button>
           <button class="btn-primary" id="sc-create">Create Skill File →</button>
         </div>
@@ -1009,8 +1022,8 @@ ${constraints}
     overlay.innerHTML = `
       <div class="ai-modal">
         <div class="ai-modal-header">
-          <h3>✦ Improve with AI</h3>
-          <button id="ai-modal-close" style="background:none;border:none;color:var(--text2);font-size:20px;cursor:pointer;padding:0 4px">×</button>
+          <h3>◇ Improve with AI</h3>
+          <button type="button" id="ai-modal-close" class="ai-modal-close-btn" aria-label="Close">×</button>
         </div>
         <div class="ai-modal-body">
           <div class="ai-spinner">
@@ -1018,7 +1031,7 @@ ${constraints}
             Sending workspace spec to Claude — this takes 10–20 seconds…
           </div>
         </div>
-        <div class="ai-modal-footer" id="ai-modal-footer" style="display:none"></div>
+        <div class="ai-modal-footer is-hidden" id="ai-modal-footer"></div>
       </div>
     `;
     document.body.appendChild(overlay);
@@ -1054,15 +1067,15 @@ ${constraints}
         <div class="change-item-label">${escHtml(entry.field || 'general')}</div>
         ${escHtml(entry.message || '')}
       </div>
-    `).join('') || '<p style="color:var(--text2);font-size:13px">No changes detected — your spec is already well-formed.</p>';
+    `).join('') || '<p class="ai-empty-msg">No changes detected — your spec is already well-formed.</p>';
 
     body.innerHTML = `
-      <p style="font-size:13px;color:var(--text2);margin-bottom:16px">Claude reviewed your workspace spec and suggested the following improvements. Accept to regenerate all files.</p>
+      <p class="ai-improve-lede">Claude reviewed your workspace spec and suggested the following improvements. Accept to regenerate all files.</p>
       <div class="change-log">${items}</div>
-      ${warnings && warnings.length ? `<div class="ai-warn">⚠ ${warnings.map(escHtml).join(' • ')}</div>` : ''}
+      ${warnings && warnings.length ? `<div class="ai-warn"><span class="ai-warn-mark" aria-hidden="true">!</span> ${warnings.map(escHtml).join(' • ')}</div>` : ''}
     `;
 
-    footer.style.display = 'flex';
+    footer.classList.remove('is-hidden');
     footer.innerHTML = `
       <button class="btn-secondary" id="ai-reject-btn">Reject — keep original</button>
       <button class="btn-primary" id="ai-accept-btn">Accept improvements →</button>
@@ -1080,10 +1093,10 @@ ${constraints}
     const body = overlay.querySelector('.ai-modal-body');
     const footer = overlay.querySelector('#ai-modal-footer');
     body.innerHTML = `
-      <p style="font-size:14px;color:var(--red);margin-bottom:8px">AI improvement failed</p>
-      <p style="font-size:13px;color:var(--text2)">${escHtml(message)}</p>
+      <p class="ai-error-title">AI improvement failed</p>
+      <p class="ai-error-body">${escHtml(message)}</p>
     `;
-    footer.style.display = 'flex';
+    footer.classList.remove('is-hidden');
     footer.innerHTML = `<button class="btn-secondary" id="ai-close-err">Close</button>`;
     footer.querySelector('#ai-close-err').addEventListener('click', () => overlay.remove());
   }
@@ -1145,7 +1158,7 @@ ${constraints}
     } catch(err) {
       showToast('Download failed. Try again.', 'error');
     } finally {
-      if (btn) { btn.textContent = '⬇ Download Workspace (.zip)'; btn.disabled = false; }
+      if (btn) { btn.textContent = '↓ Download Workspace (.zip)'; btn.disabled = false; }
     }
   }
 

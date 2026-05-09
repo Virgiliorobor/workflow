@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .bauhaus-grid {
+      background-size: 32px 32px;
+      background-image: linear-gradient(to right, #e4bebc 1px, transparent 1px), linear-gradient(to bottom, #e4bebc 1px, transparent 1px);
+    }
+    .noise-overlay {
+      position: relative;
+    }
+    .noise-overlay::before {
+      content: "";
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      opacity: 0.04;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+      z-index: 100;
+    }
+    .knurled-pattern {
+      background-image: radial-gradient(rgba(0,0,0,0.2) 0.5px, transparent 0.5px);
+      background-size: 4px 4px;
+    }
+    .bauhaus-shadow {
+      box-shadow: 4px 4px 0px 0px #1a1c1c;
+    }
+    .bauhaus-shadow-sm {
+      box-shadow: 2px 2px 0px 0px #1a1c1c;
+    }
+  </style>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+                  "outline-variant": "#e4bebc",
+                  "primary": "#b7102a",
+                  "on-tertiary-fixed": "#001b3c",
+                  "primary-container": "#db313f",
+                  "surface-dim": "#dadada",
+                  "on-secondary-fixed-variant": "#5e4100",
+                  "on-primary": "#ffffff",
+                  "on-surface-variant": "#5b403f",
+                  "inverse-primary": "#ffb3b1",
+                  "secondary": "#7d5800",
+                  "error": "#ba1a1a",
+                  "surface": "#f9f9f9",
+                  "secondary-fixed-dim": "#ffba27",
+                  "on-tertiary": "#ffffff",
+                  "on-secondary-container": "#6b4b00",
+                  "tertiary-container": "#5f759b",
+                  "tertiary": "#465d81",
+                  "surface-container-lowest": "#ffffff",
+                  "on-error-container": "#93000a",
+                  "on-secondary-fixed": "#271900",
+                  "on-background": "#1a1c1c",
+                  "surface-container-high": "#e8e8e8",
+                  "on-primary-fixed": "#410007",
+                  "surface-variant": "#e2e2e2",
+                  "secondary-fixed": "#ffdea9",
+                  "on-surface": "#1a1c1c",
+                  "on-tertiary-container": "#fefcff",
+                  "tertiary-fixed-dim": "#b0c7f1",
+                  "surface-container-highest": "#e2e2e2",
+                  "surface-bright": "#f9f9f9",
+                  "primary-fixed": "#ffdad8",
+                  "on-secondary": "#ffffff",
+                  "outline": "#8f6f6e",
+                  "surface-tint": "#bb152c",
+                  "inverse-surface": "#2f3131",
+                  "inverse-on-surface": "#f1f1f1",
+                  "on-primary-fixed-variant": "#92001c",
+                  "on-primary-container": "#fffbff",
+                  "surface-container-low": "#f3f3f3",
+                  "secondary-container": "#ffb702",
+                  "primary-fixed-dim": "#ffb3b1",
+                  "on-error": "#ffffff",
+                  "error-container": "#ffdad6",
+                  "on-tertiary-fixed-variant": "#30476a",
+                  "surface-container": "#eeeeee",
+                  "tertiary-fixed": "#d5e3ff",
+                  "background": "#f9f9f9"
+          },
+          "borderRadius": {
+                  "DEFAULT": "0.25rem",
+                  "lg": "0.5rem",
+                  "xl": "0.75rem",
+                  "full": "9999px"
+          },
+          "spacing": {
+                  "margin-desktop": "32px",
+                  "margin-mobile": "16px",
+                  "unit": "4px",
+                  "gutter": "16px",
+                  "grid-pattern-size": "32px"
+          },
+          "fontFamily": {
+                  "display-lg": ["Space Grotesk"],
+                  "body-rg": ["Inter"],
+                  "technical-sm": ["JetBrains Mono"],
+                  "headline-md": ["Space Grotesk"],
+                  "label-caps": ["JetBrains Mono"]
+          },
+          "fontSize": {
+                  "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                  "body-rg": ["16px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                  "technical-sm": ["10px", {"lineHeight": "1.2", "fontWeight": "400"}],
+                  "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                  "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "500"}]
+          }
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-background text-on-background font-body-rg min-h-screen noise-overlay bauhaus-grid">
+<!-- TopAppBar -->
+<header class="bg-surface border-b-2 border-on-background fixed top-0 w-full z-50 flex justify-between items-center px-8 h-14">
+<div class="flex items-center">
+<div class="font-display-lg text-2xl font-bold text-primary border-r-2 border-on-background pr-6 mr-6 leading-none">
+        OS/FOLDER
+      </div>
+<span class="font-label-caps text-on-surface-variant uppercase tracking-widest text-[10px]">
+        INDUSTRIAL_CORE_V2.0
+      </span>
+</div>
+<div class="flex items-center gap-6">
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer">settings</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer">terminal</span>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors cursor-pointer">help_outline</span>
+</div>
+</header>
+<div class="flex pt-14 min-h-screen">
+<!-- SideNavBar -->
+<nav class="bg-surface border-r-2 border-on-background w-20 fixed h-[calc(100vh-3.5rem)] flex flex-col items-center py-6 space-y-4 overflow-y-auto">
+<div class="mb-8 flex flex-col items-center">
+<div class="w-10 h-10 bg-primary mb-2 flex items-center justify-center rounded-none bauhaus-shadow-sm">
+<span class="material-symbols-outlined text-on-primary text-xl" style="font-variation-settings: 'FILL' 1;">developer_board</span>
+</div>
+<span class="font-technical-sm text-[9px] text-center text-on-surface-variant font-bold">NODE_04</span>
+</div>
+<a class="w-12 h-12 text-on-surface-variant hover:bg-surface-container-high transition-all flex flex-col items-center justify-center group" href="#">
+<span class="material-symbols-outlined">chat_bubble_outline</span>
+</a>
+<a class="w-12 h-12 text-on-surface-variant hover:bg-surface-container-high transition-all flex flex-col items-center justify-center group" href="#">
+<span class="material-symbols-outlined">analytics</span>
+</a>
+<a class="w-12 h-12 bg-primary text-on-primary bauhaus-shadow-sm transition-all flex flex-col items-center justify-center group" href="#">
+<span class="material-symbols-outlined">fact_check</span>
+</a>
+<a class="w-12 h-12 text-on-surface-variant hover:bg-surface-container-high transition-all flex flex-col items-center justify-center group" href="#">
+<span class="material-symbols-outlined">account_tree</span>
+</a>
+</nav>
+<!-- Main Canvas -->
+<main class="ml-20 flex-grow pb-16">
+<div class="max-w-6xl mx-auto px-8 py-10">
+<!-- Header Section -->
+<div class="border-2 border-on-background mb-10 p-8 bg-surface-container-lowest bauhaus-shadow">
+<div class="flex justify-between items-start">
+<div>
+<h1 class="font-display-lg text-3xl uppercase mb-3 text-on-background flex items-center gap-3">
+<span class="w-8 h-8 bg-primary inline-block"></span>
+            MANUAL_INPUT_OVERRIDE
+          </h1>
+<p class="font-body-rg text-on-surface-variant max-w-2xl text-lg">Bypass LLM conversation logic. Manually define architectural parameters and system constraints via the following technical blocks.</p>
+</div>
+<div class="flex items-center gap-3 px-4 py-2 border-2 border-primary bg-primary-fixed">
+<span class="w-3 h-3 bg-primary animate-pulse rounded-full"></span>
+<span class="font-label-caps text-primary font-bold">LINK_ACTIVE</span>
+</div>
+</div>
+</div>
+<form class="grid grid-cols-12 gap-8">
+<!-- Section: Project Metadata -->
+<div class="col-span-12 lg:col-span-8 bg-surface p-8 border-2 border-on-background bauhaus-shadow">
+<div class="flex items-center gap-3 mb-8 border-b-2 border-outline-variant pb-4">
+<span class="material-symbols-outlined text-primary font-bold">settings_input_component</span>
+<h2 class="font-headline-md uppercase tracking-tight">01 // Project Metadata</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+<div class="space-y-6">
+<div>
+<label class="block font-label-caps text-on-surface-variant uppercase mb-2 font-bold">Project_Name</label>
+<input class="w-full bg-white border-2 border-on-background px-4 py-3 focus:bg-primary-fixed focus:outline-none focus:ring-0 placeholder-on-surface-variant/40 font-technical-sm text-base rounded-none" placeholder="ROOT_ALPHA" type="text"/>
+</div>
+<div>
+<label class="block font-label-caps text-on-surface-variant uppercase mb-2 font-bold">Namespace_Alias</label>
+<input class="w-full bg-white border-2 border-on-background px-4 py-3 focus:bg-primary-fixed focus:outline-none focus:ring-0 placeholder-on-surface-variant/40 font-technical-sm text-base rounded-none" placeholder="com.sys.gen" type="text"/>
+</div>
+</div>
+<div class="space-y-6">
+<div>
+<label class="block font-label-caps text-on-surface-variant uppercase mb-2 font-bold">Version_Seed</label>
+<div class="flex">
+<input class="flex-grow bg-white border-2 border-on-background px-4 py-3 focus:bg-primary-fixed focus:outline-none focus:ring-0 font-technical-sm text-base rounded-none border-r-0" type="text" value="1.0.0"/>
+<button class="bg-on-background text-on-primary px-4 border-2 border-on-background flex items-center hover:bg-primary transition-colors" type="button">
+<span class="material-symbols-outlined">refresh</span>
+</button>
+</div>
+</div>
+<div>
+<label class="block font-label-caps text-on-surface-variant uppercase mb-2 font-bold">Environment_Target</label>
+<div class="relative">
+<select class="w-full bg-white border-2 border-on-background px-4 py-3 focus:bg-primary-fixed focus:outline-none focus:ring-0 font-technical-sm text-base appearance-none rounded-none">
+<option>PRODUCTION_STABLE</option>
+<option>DEVELOPMENT_SANDBOX</option>
+<option>CI_CD_PIPELINE</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Folder Depth Control -->
+<div class="col-span-12 lg:col-span-4 bg-surface-container-low p-8 border-2 border-on-background bauhaus-shadow">
+<div class="flex items-center gap-3 mb-8 border-b-2 border-outline-variant pb-4">
+<span class="material-symbols-outlined text-primary font-bold">reorder</span>
+<h2 class="font-headline-md uppercase tracking-tight">02 // Depth</h2>
+</div>
+<div class="space-y-8">
+<div>
+<label class="block font-label-caps text-on-surface-variant uppercase mb-4 font-bold">Maximum_Recursion</label>
+<div class="flex items-center gap-6">
+<span class="font-display-lg text-3xl text-primary w-12 text-center">05</span>
+<input class="flex-grow accent-primary h-2 bg-on-background appearance-none cursor-pointer" max="10" min="1" type="range" value="5"/>
+</div>
+</div>
+<div class="border-2 border-on-background p-6 bg-surface-container-lowest bauhaus-shadow-sm">
+<p class="font-label-caps text-[10px] text-on-surface-variant font-bold leading-relaxed uppercase mb-4 tracking-wider">Recursive_Scan_Flags</p>
+<div class="space-y-4">
+<label class="flex items-center gap-4 cursor-pointer group">
+<input checked="" class="w-5 h-5 border-2 border-on-background text-primary focus:ring-0 rounded-none bg-white" type="checkbox"/>
+<span class="font-label-caps uppercase group-hover:text-primary transition-colors font-bold text-sm">Ignore_Hidden_Dirs</span>
+</label>
+<label class="flex items-center gap-4 cursor-pointer group">
+<input class="w-5 h-5 border-2 border-on-background text-primary focus:ring-0 rounded-none bg-white" type="checkbox"/>
+<span class="font-label-caps uppercase group-hover:text-primary transition-colors font-bold text-sm">Follow_Symlinks</span>
+</label>
+<label class="flex items-center gap-4 cursor-pointer group">
+<input checked="" class="w-5 h-5 border-2 border-on-background text-primary focus:ring-0 rounded-none bg-white" type="checkbox"/>
+<span class="font-label-caps uppercase group-hover:text-primary transition-colors font-bold text-sm">Generate_Lockfiles</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Dependency Mapping -->
+<div class="col-span-12 lg:col-span-6 bg-surface p-8 border-2 border-on-background bauhaus-shadow">
+<div class="flex items-center gap-3 mb-8 border-b-2 border-outline-variant pb-4">
+<span class="material-symbols-outlined text-primary font-bold">hub</span>
+<h2 class="font-headline-md uppercase tracking-tight">03 // Dependency Mapping</h2>
+</div>
+<div class="space-y-6">
+<div class="flex gap-4">
+<input class="flex-grow bg-white border-2 border-on-background px-4 py-3 font-technical-sm text-base focus:bg-primary-fixed focus:outline-none rounded-none" placeholder="DEP_ID:VERSION" type="text"/>
+<button class="bg-primary text-on-primary px-8 border-2 border-on-background font-label-caps font-bold uppercase flex items-center gap-3 hover:bg-primary-container transition-all bauhaus-shadow-sm active:translate-x-[1px] active:translate-y-[1px] active:shadow-none" type="button">
+<span class="material-symbols-outlined">add</span>
+                  Inject
+                </button>
+</div>
+<div class="border-2 border-on-background overflow-hidden">
+<table class="w-full text-left font-technical-sm">
+<thead>
+<tr class="bg-on-background text-on-primary">
+<th class="p-3 uppercase font-bold tracking-widest border-r border-on-background/20">ID</th>
+<th class="p-3 uppercase font-bold tracking-widest border-r border-on-background/20">Tag</th>
+<th class="p-3 uppercase font-bold tracking-widest">Status</th>
+</tr>
+</thead>
+<tbody class="bg-white">
+<tr class="border-b-2 border-on-background hover:bg-primary-fixed transition-colors">
+<td class="p-3 border-r-2 border-on-background font-bold">CORE_ENGINE</td>
+<td class="p-3 border-r-2 border-on-background">v4.2.1</td>
+<td class="p-3"><span class="bg-primary text-on-primary px-2 py-0.5 font-bold">READY</span></td>
+</tr>
+<tr class="border-b-2 border-on-background hover:bg-primary-fixed transition-colors">
+<td class="p-3 border-r-2 border-on-background font-bold">UI_PROTO_KIT</td>
+<td class="p-3 border-r-2 border-on-background">v2.0.0</td>
+<td class="p-3"><span class="bg-primary text-on-primary px-2 py-0.5 font-bold">READY</span></td>
+</tr>
+<tr class="hover:bg-primary-fixed transition-colors">
+<td class="p-3 border-r-2 border-on-background font-bold">AUTH_MODULE</td>
+<td class="p-3 border-r-2 border-on-background">LATEST</td>
+<td class="p-3 text-on-surface-variant italic font-bold">PENDING</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Section: ReadMe Requirements -->
+<div class="col-span-12 lg:col-span-6 bg-surface p-8 border-2 border-on-background bauhaus-shadow">
+<div class="flex items-center gap-3 mb-8 border-b-2 border-outline-variant pb-4">
+<span class="material-symbols-outlined text-primary font-bold">description</span>
+<h2 class="font-headline-md uppercase tracking-tight">04 // ReadMe Requirements</h2>
+</div>
+<div class="space-y-6">
+<label class="block font-label-caps text-on-surface-variant uppercase font-bold">Documentation_Template</label>
+<textarea class="w-full bg-white border-2 border-on-background px-4 py-4 focus:bg-primary-fixed focus:outline-none focus:ring-0 font-technical-sm text-sm rounded-none" placeholder="# [PROJECT_NAME]
+## Description
+Auto-generated directory structure.
+
+### Installation
+`npm install`" rows="6"></textarea>
+<div class="grid grid-cols-2 gap-6">
+<button class="border-2 border-on-background py-3 px-4 font-label-caps font-bold uppercase text-on-surface hover:bg-on-background hover:text-on-primary transition-all bauhaus-shadow-sm text-center" type="button">
+                  Load Standard
+                </button>
+<button class="border-2 border-on-background py-3 px-4 font-label-caps font-bold uppercase text-on-surface hover:bg-on-background hover:text-on-primary transition-all bauhaus-shadow-sm text-center" type="button">
+                  Clear Canvas
+                </button>
+</div>
+</div>
+</div>
+</form>
+<!-- Form Submission / Footer Action -->
+<div class="mt-12 border-2 border-on-background p-10 bg-white flex flex-col md:flex-row justify-between items-center gap-10 bauhaus-shadow">
+<div class="flex items-center gap-6">
+<div class="w-16 h-16 border-2 border-on-background flex items-center justify-center bg-primary text-on-primary bauhaus-shadow-sm">
+<span class="material-symbols-outlined text-3xl">memory</span>
+</div>
+<div>
+<p class="font-label-caps text-on-surface-variant uppercase font-bold tracking-wider mb-1">System_Status</p>
+<p class="font-display-lg text-2xl text-on-background font-black leading-none">READY_FOR_COMPILATION</p>
+</div>
+</div>
+<button class="w-full md:w-auto bg-primary text-on-primary px-16 py-6 border-2 border-on-background font-display-lg text-xl uppercase tracking-tighter hover:bg-primary-container transition-all flex items-center justify-center gap-4 knurled-pattern bauhaus-shadow active:translate-x-[2px] active:translate-y-[2px] active:shadow-none">
+            Generate Structure
+            <span class="material-symbols-outlined font-black">keyboard_double_arrow_right</span>
+</button>
+</div>
+<!-- Asymmetric Visual Anchor Section -->
+<div class="mt-16 grid grid-cols-12 gap-10">
+<div class="col-span-12 md:col-span-7 border-l-[12px] border-primary pl-8 py-4">
+<h3 class="font-display-lg text-xl uppercase mb-4 tracking-tight flex items-center gap-2">
+<span class="w-4 h-4 bg-on-background"></span>
+            Structural_Visualization_Preview
+          </h3>
+<div class="bg-on-background text-primary-fixed p-6 font-technical-sm overflow-hidden relative min-h-[250px] border-2 border-on-background">
+<div class="absolute inset-0 opacity-5 knurled-pattern pointer-events-none"></div>
+<pre class="relative z-10 text-sm leading-relaxed">ROOT/
+├── .config/
+│   ├── sys_manifest.json
+│   └── env_vars.local
+├── src/
+│   ├── core/
+│   │   ├── engine.bin
+│   │   └── protocol.def
+│   └── modules/
+│       └── [DYNAMIC_INJECTION]
+├── docs/
+│   └── README.md
+└── package.json
+              </pre>
+</div>
+</div>
+<div class="col-span-12 md:col-span-5 border-2 border-on-background bg-secondary-container/10 p-8 flex flex-col justify-center items-center text-center bauhaus-shadow">
+<div class="w-20 h-20 border-4 border-on-background rounded-none flex items-center justify-center mb-6 bg-white rotate-3">
+<span class="material-symbols-outlined text-5xl text-primary -rotate-3">terminal</span>
+</div>
+<p class="font-label-caps text-on-background font-bold uppercase tracking-widest leading-relaxed text-sm">
+               Manual_Input mode prioritizes deterministic outputs over creative interpretation. Ensure all metadata tags are validated before compilation.
+             </p>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Footer -->
+<footer class="bg-surface border-t-2 border-on-background fixed bottom-0 left-0 w-full z-50 flex justify-between items-center px-8 h-10 font-technical-sm text-[11px] font-bold tracking-widest text-on-background">
+<div class="flex items-center gap-6">
+<span class="text-primary font-black flex items-center gap-2">
+<span class="w-2 h-2 bg-primary"></span>
+        SYSTEM_READY // AI_ACTIVE
+      </span>
+<span class="border-l-2 border-on-background pl-6">PATH: /ROOT/PROJECT_ALPHA</span>
+</div>
+<div class="flex items-center gap-8">
+<span class="hover:text-primary cursor-pointer transition-colors">LATENCY: 24MS</span>
+<span class="hover:text-primary cursor-pointer transition-colors uppercase">Logs</span>
+<div class="flex gap-2">
+<span class="w-3 h-3 bg-primary"></span>
+<span class="w-3 h-3 bg-on-background"></span>
+<span class="w-3 h-3 bg-primary-fixed border border-on-background"></span>
+</div>
+</div>
+</footer>
+</body></html>

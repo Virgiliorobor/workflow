@@ -4,14 +4,14 @@ window.ICM = window.ICM || {};
 
 window.ICM.diagram = {
 
-  // Layer color palette
+  // Layer color palette (Bauhaus industrial — matches css/styles.css --l0–l5)
   LAYER_COLORS: {
-    L0: '#7c3aed', // purple — CLAUDE.md
-    L1: '#2563eb', // blue — CONTEXT.md
-    L2: '#0891b2', // teal — stage contracts
-    L3: '#d97706', // amber — config/reference
-    L4: '#6b7280', // gray — outputs
-    L5: '#10b981'  // green — skill starters
+    L0: '#047857',
+    L1: '#465d81',
+    L2: '#5f759b',
+    L3: '#7d5800',
+    L4: '#6b7280',
+    L5: '#059669'
   },
 
   LAYER_LABELS: {
@@ -40,7 +40,7 @@ window.ICM.diagram = {
       .attr('width', width)
       .attr('height', height)
       .attr('viewBox', `0 0 ${width} ${height}`)
-      .style('background', '#0f172a');
+      .style('background', 'rgba(243, 243, 243, 0.92)');
 
     // Arrow marker
     svg.append('defs').append('marker')
@@ -53,7 +53,7 @@ window.ICM.diagram = {
       .attr('orient', 'auto')
       .append('path')
       .attr('d', 'M0,-5L10,0L0,5')
-      .attr('fill', '#475569');
+      .attr('fill', '#8f6f6e');
 
     // Create force simulation
     const simulation = d3.forceSimulation(nodes)
@@ -67,7 +67,7 @@ window.ICM.diagram = {
     const link = svg.append('g').selectAll('line')
       .data(links)
       .join('line')
-      .attr('stroke', d => d.color || '#334155')
+      .attr('stroke', d => d.color || '#8f6f6e')
       .attr('stroke-width', d => d.width || 1.5)
       .attr('stroke-dasharray', d => d.dashed ? '5,4' : null)
       .attr('marker-end', 'url(#arrow)')
@@ -78,7 +78,7 @@ window.ICM.diagram = {
       .data(links.filter(l => l.label))
       .join('text')
       .attr('font-size', 9)
-      .attr('fill', '#64748b')
+      .attr('fill', '#5b403f')
       .attr('text-anchor', 'middle')
       .text(d => d.label);
 
@@ -111,9 +111,9 @@ window.ICM.diagram = {
     // Node circles
     nodeGroup.append('circle')
       .attr('r', d => d.radius || 24)
-      .attr('fill', d => this.LAYER_COLORS[d.layer] || '#475569')
+      .attr('fill', d => this.LAYER_COLORS[d.layer] || '#8f6f6e')
       .attr('opacity', 0.9)
-      .attr('stroke', '#1e293b')
+      .attr('stroke', '#1a1c1c')
       .attr('stroke-width', 2);
 
     // Layer badge
@@ -121,7 +121,7 @@ window.ICM.diagram = {
       .attr('dy', '-0.9em')
       .attr('text-anchor', 'middle')
       .attr('font-size', 8)
-      .attr('fill', d => this.LAYER_COLORS[d.layer] || '#94a3b8')
+      .attr('fill', d => this.LAYER_COLORS[d.layer] || '#5b403f')
       .attr('font-weight', '600')
       .attr('letter-spacing', '0.05em')
       .text(d => d.layer);
@@ -131,7 +131,7 @@ window.ICM.diagram = {
       .attr('dy', '0.35em')
       .attr('text-anchor', 'middle')
       .attr('font-size', d => d.iconSize || 13)
-      .attr('fill', 'white')
+      .attr('fill', '#ffffff')
       .attr('font-weight', '700')
       .text(d => d.icon || d.label.slice(0, 2));
 
@@ -140,7 +140,7 @@ window.ICM.diagram = {
       .attr('dy', d => (d.radius || 24) + 14)
       .attr('text-anchor', 'middle')
       .attr('font-size', 10)
-      .attr('fill', '#cbd5e1')
+      .attr('fill', '#1a1c1c')
       .attr('font-weight', '500')
       .text(d => d.label);
 
@@ -149,19 +149,17 @@ window.ICM.diagram = {
       .attr('dy', d => (d.radius || 24) + 26)
       .attr('text-anchor', 'middle')
       .attr('font-size', 8)
-      .attr('fill', '#64748b')
+      .attr('fill', '#5b403f')
       .text(d => d.sublabel || '');
 
     // Tooltip
     const tooltip = d3.select('body').append('div')
       .attr('class', 'diagram-tooltip')
       .style('position', 'fixed')
-      .style('background', '#1e293b')
-      .style('border', '1px solid #334155')
-      .style('border-radius', '8px')
+      .style('background', '#ffffff')
       .style('padding', '10px 14px')
       .style('font-size', '12px')
-      .style('color', '#e2e8f0')
+      .style('font-family', "'JetBrains Mono', ui-monospace, monospace")
       .style('max-width', '240px')
       .style('pointer-events', 'none')
       .style('opacity', '0')
@@ -174,9 +172,9 @@ window.ICM.diagram = {
         tooltip
           .style('opacity', '1')
           .html(`<strong>${d.label}</strong><br>
-            <span style="color:#94a3b8;font-size:10px">${layerLabel}</span><br>
-            ${d.description ? `<span style="margin-top:4px;display:block">${d.description}</span>` : ''}
-            ${d.fileKey ? `<span style="color:#7c3aed;font-size:10px;margin-top:4px;display:block">Click to preview file →</span>` : ''}`);
+            <span style="color:#5b403f;font-size:10px">${layerLabel}</span><br>
+            ${d.description ? `<span style="margin-top:4px;display:block;color:#1a1c1c">${d.description}</span>` : ''}
+            ${d.fileKey ? `<span style="color:#047857;font-size:10px;margin-top:4px;display:block">Click to preview file →</span>` : ''}`);
       })
       .on('mousemove', event => {
         tooltip
@@ -251,7 +249,7 @@ window.ICM.diagram = {
       source: 'claude',
       target: 'context',
       label: 'routes to',
-      color: '#4f46e5',
+      color: '#465d81',
       width: 2,
       distance: 110
     });
@@ -283,7 +281,7 @@ window.ICM.diagram = {
       links.push({
         source: 'context',
         target: stageId,
-        color: '#0891b2',
+        color: '#5f759b',
         width: 1.5,
         distance: 130
       });
@@ -294,7 +292,7 @@ window.ICM.diagram = {
           source: `stage_${i - 1}`,
           target: stageId,
           label: 'output →',
-          color: '#334155',
+          color: '#8f6f6e',
           width: 1,
           dashed: true,
           distance: stageSpread / stageCount
@@ -319,7 +317,7 @@ window.ICM.diagram = {
       links.push({
         source: stageId,
         target: outputId,
-        color: '#475569',
+        color: '#8f6f6e',
         width: 1,
         distance: 80
       });
@@ -360,7 +358,7 @@ window.ICM.diagram = {
       links.push({
         source: `stage_${connectToStage}`,
         target: `config_${cfg.id}`,
-        color: '#b45309',
+        color: '#ffb702',
         width: 1,
         dashed: true,
         distance: 160
@@ -373,7 +371,7 @@ window.ICM.diagram = {
         id: 'skills_readme',
         label: 'skill-starters/',
         sublabel: 'Reusable prompts',
-        icon: '★',
+        icon: '⋆',
         fileKey: `${project_name}/skill-starters/README.md`,
         description: 'Reusable prompt templates (“skills”) for starting work in each stage.'
       }
@@ -400,7 +398,7 @@ window.ICM.diagram = {
       links.push({
         source: 'context',
         target: `skill_${sk.id}`,
-        color: '#10b981',
+        color: '#059669',
         width: 1.2,
         dashed: true,
         distance: 210
@@ -420,15 +418,17 @@ window.ICM.diagram = {
     legend.append('rect')
       .attr('x', -8).attr('y', -8)
       .attr('width', 170).attr('height', layers.length * 22 + 16)
-      .attr('rx', 6)
-      .attr('fill', '#1e293b')
-      .attr('opacity', 0.85);
+      .attr('rx', 0)
+      .attr('fill', '#ffffff')
+      .attr('opacity', 0.95)
+      .attr('stroke', '#1a1c1c')
+      .attr('stroke-width', 2);
 
     layers.forEach(([layer, color], i) => {
       const g = legend.append('g').attr('transform', `translate(0,${i * 22})`);
       g.append('circle').attr('cx', 8).attr('cy', 7).attr('r', 6).attr('fill', color);
       g.append('text').attr('x', 20).attr('y', 12)
-        .attr('font-size', 10).attr('fill', '#cbd5e1')
+        .attr('font-size', 10).attr('fill', '#1a1c1c')
         .text(this.LAYER_LABELS[layer]);
     });
   },

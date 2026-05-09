@@ -5,7 +5,7 @@ const ARCHETYPES = [
   {
     id: 'content',
     label: 'Content Creator',
-    icon: '🎬',
+    icon: '▸',
     description: 'Videos, articles, newsletters, social media — you produce content regularly',
     stageDefaults: ['research', 'script', 'production'],
     stageLabels: ['Research', 'Script / Draft', 'Production']
@@ -13,7 +13,7 @@ const ARCHETYPES = [
   {
     id: 'freelancer',
     label: 'Freelancer / Consultant',
-    icon: '💼',
+    icon: '▭',
     description: 'You deliver projects or services to clients across multiple engagements',
     stageDefaults: ['discovery', 'build', 'review', 'handoff'],
     stageLabels: ['Discovery', 'Build', 'Review', 'Handoff']
@@ -21,7 +21,7 @@ const ARCHETYPES = [
   {
     id: 'developer',
     label: 'Developer',
-    icon: '⚙️',
+    icon: '⊕',
     description: 'You build software — planning, writing code, testing, deploying, documenting',
     stageDefaults: ['planning', 'build', 'docs'],
     stageLabels: ['Planning', 'Build', 'Docs']
@@ -29,7 +29,7 @@ const ARCHETYPES = [
   {
     id: 'smallbiz',
     label: 'Small Business Ops',
-    icon: '🏢',
+    icon: '⊞',
     description: 'Recurring operational work — the same type of job comes in regularly',
     stageDefaults: ['intake', 'process', 'deliver'],
     stageLabels: ['Intake', 'Process', 'Deliver']
@@ -37,7 +37,7 @@ const ARCHETYPES = [
   {
     id: 'custom',
     label: 'Custom / Other',
-    icon: '✏️',
+    icon: '╱',
     description: 'Your workflow doesn\'t fit the above — you\'ll define it yourself',
     stageDefaults: ['stage-1', 'stage-2', 'stage-3'],
     stageLabels: ['Stage 1', 'Stage 2', 'Stage 3']

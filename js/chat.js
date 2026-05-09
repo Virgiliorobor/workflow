@@ -13,6 +13,8 @@ window.ICM.chat = (() => {
   let messages = [];
   let currentRound = 0;
   let isSending = false;
+  /** Increments per assistant bubble for terminal-style labels */
+  let assistantBubbleCount = 0;
 
   // ── PUBLIC: show ───────────────────────────────────────────────────────────
 
@@ -20,6 +22,7 @@ window.ICM.chat = (() => {
     messages = [];
     currentRound = 0;
     isSending = false;
+    assistantBubbleCount = 0;
 
     // Reset UI
     const msgEl = document.getElementById('chat-messages');
@@ -163,10 +166,36 @@ window.ICM.chat = (() => {
   function displayBubble(role, text) {
     const container = document.getElementById('chat-messages');
     if (!container) return;
-    const div = document.createElement('div');
-    div.className = `chat-bubble chat-bubble-${role}`;
-    div.textContent = text;
-    container.appendChild(div);
+
+    const block = document.createElement('div');
+    block.className =
+      role === 'user' ? 'chat-msg-block chat-msg-block-user' : 'chat-msg-block chat-msg-block-assistant';
+
+    const labelRow = document.createElement('div');
+    const line = document.createElement('span');
+    line.className = 'chat-msg-label-line';
+    line.setAttribute('aria-hidden', 'true');
+
+    if (role === 'user') {
+      labelRow.className = 'chat-msg-label chat-msg-label-user';
+      labelRow.textContent = '[USER.INPUT]';
+    } else {
+      assistantBubbleCount += 1;
+      const isFirst = assistantBubbleCount === 1;
+      labelRow.className =
+        'chat-msg-label ' +
+        (isFirst ? 'chat-msg-label-assistant-primary' : 'chat-msg-label-assistant-tertiary');
+      labelRow.appendChild(document.createTextNode(isFirst ? '[SYSTEM.PROMPT]' : '[SYSTEM.RESPONSE]'));
+      labelRow.appendChild(line);
+    }
+
+    const bubble = document.createElement('div');
+    bubble.className = `chat-bubble chat-bubble-${role}`;
+    bubble.textContent = text;
+
+    block.appendChild(labelRow);
+    block.appendChild(bubble);
+    container.appendChild(block);
     container.scrollTop = container.scrollHeight;
   }
 
@@ -174,11 +203,22 @@ window.ICM.chat = (() => {
     const container = document.getElementById('chat-messages');
     if (!container) return null;
     const id = 'chat-typing-' + Date.now();
+    const wrap = document.createElement('div');
+    wrap.className = 'chat-msg-block chat-msg-block-assistant';
+    const labelRow = document.createElement('div');
+    labelRow.className = 'chat-msg-label chat-msg-label-assistant-tertiary';
+    const line = document.createElement('span');
+    line.className = 'chat-msg-label-line';
+    line.setAttribute('aria-hidden', 'true');
+    labelRow.appendChild(document.createTextNode('[SYSTEM]'));
+    labelRow.appendChild(line);
     const div = document.createElement('div');
     div.id = id;
     div.className = 'chat-bubble chat-bubble-assistant chat-typing';
     div.innerHTML = '<span></span><span></span><span></span>';
-    container.appendChild(div);
+    wrap.appendChild(labelRow);
+    wrap.appendChild(div);
+    container.appendChild(wrap);
     container.scrollTop = container.scrollHeight;
     return id;
   }

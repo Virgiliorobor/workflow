@@ -5,6 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ICM Workspace Builder</title>
   <meta name="description" content="Answer guided questions and generate a fully populated AI workspace folder structure — based on the Interpretable Context Methodology.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <!-- CDN deps -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -18,13 +21,13 @@
     <span class="nav-logo-badge">ICM</span>
     Workspace Builder
   </a>
-  <span class="nav-tagline">by Clief Notes / Eduba</span>
+  <span class="nav-tagline">Based on Clief Notes Skool community</span>
 </nav>
 
 <!-- ══════════════════════════════════════════════════════════════════════════
      SCREEN: HOME
 ═══════════════════════════════════════════════════════════════════════════ -->
-<div id="screen-home" class="screen active">
+<div id="screen-home" class="screen active screen-fill-grid">
 
   <div class="home-hero">
     <div class="home-eyebrow">Interpretable Context Methodology</div>
@@ -32,17 +35,17 @@
     <p>Answer a few guided questions. Get a fully structured folder system that tells Claude where it is, what to do, and where to put the work — every session, from day one.</p>
 
     <div class="home-actions">
-      <button class="btn-primary" id="btn-new" style="font-size:16px;padding:14px 36px">
+      <button class="btn-primary" id="btn-new">
         Build a new workspace →
       </button>
       <button class="btn-chat-entry" id="btn-chat" disabled title="Checking AI backend…">
-        ✦ Build with AI conversation
+        ◇ Build with AI conversation
       </button>
     </div>
 
     <div id="resume-banner" class="resume-banner hidden">
       <span>You have a workspace in progress.</span>
-      <button class="btn-secondary" id="btn-resume" style="padding:8px 16px;font-size:13px">Resume →</button>
+      <button class="btn-secondary" id="btn-resume">Resume →</button>
     </div>
   </div>
 
@@ -50,7 +53,7 @@
   <div class="reopen-section">
     <div class="reopen-label">Already have a workspace? Re-open it to edit and re-export.</div>
     <div id="dropzone">
-      <span class="drop-icon">📂</span>
+      <span class="drop-icon" aria-hidden="true"><span class="tree-icon-dir tree-icon-dir-lg"></span></span>
       Drag your <strong>workspace-state.json</strong> here, or click to browse
     </div>
     <input type="file" id="reopen-input" accept=".json">
@@ -84,33 +87,33 @@
   </div>
 
   <!-- Layer explainer -->
-  <div style="max-width:720px;margin:0 auto 80px;padding:0 24px;">
-    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 32px;">
-      <h3 style="font-size:16px;font-weight:700;margin-bottom:20px;">The 6-layer ICM system</h3>
-      <div style="display:flex;flex-direction:column;gap:12px;">
-        <div style="display:flex;gap:14px;align-items:flex-start;">
-          <span style="flex-shrink:0;width:40px;text-align:center;font-size:11px;font-weight:700;padding:3px 0;border-radius:4px;background:rgba(124,58,237,.2);color:#7c3aed;">L0</span>
-          <div><strong>CLAUDE.md</strong> — <span style="color:var(--text2)">Always loaded. The map. Identity, routing table, naming conventions. ~800 tokens.</span></div>
+  <div class="layer-explainer-wrap">
+    <div class="layer-explainer-panel">
+      <h3 class="layer-explainer-title">The 6-layer ICM system</h3>
+      <div class="layer-explainer-rows">
+        <div class="layer-explainer-row">
+          <span class="layer-explainer-badge layer-explainer-badge--l0">L0</span>
+          <div class="layer-explainer-body"><strong>CLAUDE.md</strong> — <span class="layer-explainer-muted">Always loaded. The map. Identity, routing table, naming conventions. ~800 tokens.</span></div>
         </div>
-        <div style="display:flex;gap:14px;align-items:flex-start;">
-          <span style="flex-shrink:0;width:40px;text-align:center;font-size:11px;font-weight:700;padding:3px 0;border-radius:4px;background:rgba(37,99,235,.2);color:#2563eb;">L1</span>
-          <div><strong>CONTEXT.md</strong> — <span style="color:var(--text2)">Loaded on workspace entry. Stage map, how stages connect, routing logic.</span></div>
+        <div class="layer-explainer-row">
+          <span class="layer-explainer-badge layer-explainer-badge--l1">L1</span>
+          <div class="layer-explainer-body"><strong>CONTEXT.md</strong> — <span class="layer-explainer-muted">Loaded on workspace entry. Stage map, how stages connect, routing logic.</span></div>
         </div>
-        <div style="display:flex;gap:14px;align-items:flex-start;">
-          <span style="flex-shrink:0;width:40px;text-align:center;font-size:11px;font-weight:700;padding:3px 0;border-radius:4px;background:rgba(8,145,178,.2);color:#0891b2;">L2</span>
-          <div><strong>Stage contracts</strong> — <span style="color:var(--text2)">One per stage. Loaded per task. Inputs / Process / Output / Done looks like.</span></div>
+        <div class="layer-explainer-row">
+          <span class="layer-explainer-badge layer-explainer-badge--l2">L2</span>
+          <div class="layer-explainer-body"><strong>Stage contracts</strong> — <span class="layer-explainer-muted">One per stage. Loaded per task. Inputs / Process / Output / Done looks like.</span></div>
         </div>
-        <div style="display:flex;gap:14px;align-items:flex-start;">
-          <span style="flex-shrink:0;width:40px;text-align:center;font-size:11px;font-weight:700;padding:3px 0;border-radius:4px;background:rgba(217,119,6,.2);color:#d97706;">L3</span>
-          <div><strong>_config/ files</strong> — <span style="color:var(--text2)">Loaded selectively. Voice, format patterns, constraints, business rules. Stable across runs.</span></div>
+        <div class="layer-explainer-row">
+          <span class="layer-explainer-badge layer-explainer-badge--l3">L3</span>
+          <div class="layer-explainer-body"><strong>_config/ files</strong> — <span class="layer-explainer-muted">Loaded selectively. Voice, format patterns, constraints, business rules. Stable across runs.</span></div>
         </div>
-        <div style="display:flex;gap:14px;align-items:flex-start;">
-          <span style="flex-shrink:0;width:40px;text-align:center;font-size:11px;font-weight:700;padding:3px 0;border-radius:4px;background:rgba(107,114,128,.2);color:#9ca3af;">L4</span>
-          <div><strong>output/ directories</strong> — <span style="color:var(--text2)">Working files. Stage N's output is Stage N+1's input. Human review at each handoff.</span></div>
+        <div class="layer-explainer-row">
+          <span class="layer-explainer-badge layer-explainer-badge--l4">L4</span>
+          <div class="layer-explainer-body"><strong>output/ directories</strong> — <span class="layer-explainer-muted">Working files. Stage N's output is Stage N+1's input. Human review at each handoff.</span></div>
         </div>
-        <div style="display:flex;gap:14px;align-items:flex-start;">
-          <span style="flex-shrink:0;width:40px;text-align:center;font-size:11px;font-weight:700;padding:3px 0;border-radius:4px;background:rgba(16,185,129,.18);color:#10b981;">L5</span>
-          <div><strong>skill-starters/</strong> — <span style="color:var(--text2)">Optional prompt templates. Reusable “skills” to start work in each stage quickly and consistently.</span></div>
+        <div class="layer-explainer-row">
+          <span class="layer-explainer-badge layer-explainer-badge--l5">L5</span>
+          <div class="layer-explainer-body"><strong>skill-starters/</strong> — <span class="layer-explainer-muted">Optional prompt templates. Reusable “skills” to start work in each stage quickly and consistently.</span></div>
         </div>
       </div>
     </div>
@@ -122,12 +125,12 @@
 <!-- ══════════════════════════════════════════════════════════════════════════
      SCREEN: CHAT (conversational entry → pre-filled wizard)
 ═══════════════════════════════════════════════════════════════════════════ -->
-<div id="screen-chat" class="screen">
+<div id="screen-chat" class="screen screen-fill-grid">
 
   <div class="chat-header">
     <button class="btn-ghost" id="chat-back-btn">← Back</button>
     <div class="chat-header-center">
-      <span class="chat-header-title">✦ Build with AI conversation</span>
+      <span class="chat-header-title">◇ Build with AI conversation</span>
       <span class="chat-header-sub">Describe your project — Claude will pre-fill the wizard for you</span>
     </div>
   </div>
@@ -153,7 +156,7 @@
 <!-- ══════════════════════════════════════════════════════════════════════════
      SCREEN: WIZARD
 ═══════════════════════════════════════════════════════════════════════════ -->
-<div id="screen-wizard" class="screen">
+<div id="screen-wizard" class="screen screen-fill-grid">
   <div class="wizard-content" id="wizard-content">
     <!-- Rendered dynamically by app.js -->
   </div>
@@ -163,18 +166,18 @@
 <!-- ══════════════════════════════════════════════════════════════════════════
      SCREEN: RESULTS
 ═══════════════════════════════════════════════════════════════════════════ -->
-<div id="screen-results" class="screen">
+<div id="screen-results" class="screen screen-fill-grid">
 
   <div class="results-header">
     <h2>Workspace: <span id="results-title"></span></h2>
     <div class="results-actions">
       <button id="btn-home" class="btn-home" title="Go to home screen">⌂ Home</button>
       <span class="results-actions-divider"></span>
-      <button class="btn-secondary" id="btn-edit" style="font-size:13px;padding:8px 16px">
-        ✏ Edit Answers
+      <button class="btn-secondary btn-results-secondary" id="btn-edit">
+        ≡ Edit Answers
       </button>
-      <button class="btn-primary" id="btn-download" style="font-size:14px;padding:10px 22px">
-        ⬇ Download Workspace (.zip)
+      <button class="btn-primary btn-results-download" id="btn-download">
+        ↓ Download Workspace (.zip)
       </button>
     </div>
   </div>

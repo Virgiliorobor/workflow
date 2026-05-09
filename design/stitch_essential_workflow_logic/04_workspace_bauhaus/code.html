@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DIRECTORY_GEN // Bauhaus Industrial Workspace</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .knurled-pattern {
+            background-image: radial-gradient(#000 0.5px, transparent 0.5px);
+            background-size: 8px 8px;
+            background-repeat: repeat;
+            opacity: 0.05;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #8f6f6e;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .font-display {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .font-mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "outline-variant": "#e4bebc",
+                        "primary": "#b7102a",
+                        "on-tertiary-fixed": "#001b3c",
+                        "primary-container": "#db313f",
+                        "surface-dim": "#dadada",
+                        "on-secondary-fixed-variant": "#5e4100",
+                        "on-primary": "#ffffff",
+                        "on-surface-variant": "#5b403f",
+                        "inverse-primary": "#ffb3b1",
+                        "secondary": "#7d5800",
+                        "error": "#ba1a1a",
+                        "surface": "#f9f9f9",
+                        "secondary-fixed-dim": "#ffba27",
+                        "on-tertiary": "#ffffff",
+                        "on-secondary-container": "#6b4b00",
+                        "tertiary-container": "#5f759b",
+                        "tertiary": "#465d81",
+                        "surface-container-lowest": "#ffffff",
+                        "on-error-container": "#93000a",
+                        "on-secondary-fixed": "#271900",
+                        "on-background": "#1a1c1c",
+                        "surface-container-high": "#e8e8e8",
+                        "on-primary-fixed": "#410007",
+                        "surface-variant": "#e2e2e2",
+                        "secondary-fixed": "#ffdea9",
+                        "on-surface": "#1a1c1c",
+                        "on-tertiary-container": "#fefcff",
+                        "tertiary-fixed-dim": "#b0c7f1",
+                        "surface-container-highest": "#e2e2e2",
+                        "surface-bright": "#f9f9f9",
+                        "primary-fixed": "#ffdad8",
+                        "on-secondary": "#ffffff",
+                        "outline": "#8f6f6e",
+                        "surface-tint": "#bb152c",
+                        "inverse-surface": "#2f3131",
+                        "inverse-on-surface": "#f1f1f1",
+                        "on-primary-fixed-variant": "#92001c",
+                        "on-primary-container": "#fffbff",
+                        "surface-container-low": "#f3f3f3",
+                        "secondary-container": "#ffb702",
+                        "primary-fixed-dim": "#ffb3b1",
+                        "on-error": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "on-tertiary-fixed-variant": "#30476a",
+                        "surface-container": "#eeeeee",
+                        "tertiary-fixed": "#d5e3ff",
+                        "background": "#f9f9f9"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "unit": "4px",
+                        "gutter": "16px",
+                        "grid-pattern-size": "32px"
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface flex flex-col h-screen overflow-hidden">
+<!-- TopAppBar -->
+<header class="bg-surface border-b border-outline flex justify-between items-center w-full px-8 h-14 z-50">
+<div class="flex items-center h-full">
+<span class="font-display text-xl font-bold tracking-tighter text-primary border-r border-outline pr-6 h-full flex items-center">OS/FOLDER</span>
+<div class="ml-6 flex items-center space-x-2">
+<button class="font-mono text-[11px] uppercase tracking-wider text-primary hover:bg-surface-container-high transition-colors px-3 py-1.5">FILE</button>
+<button class="font-mono text-[11px] uppercase tracking-wider text-on-surface-variant hover:bg-surface-container-high transition-colors px-3 py-1.5">EDIT</button>
+<button class="font-mono text-[11px] uppercase tracking-wider text-on-surface-variant hover:bg-surface-container-high transition-colors px-3 py-1.5">VIEW</button>
+<button class="font-mono text-[11px] uppercase tracking-wider text-on-surface-variant hover:bg-surface-container-high transition-colors px-3 py-1.5">TERMINAL</button>
+</div>
+</div>
+<div class="flex items-center space-x-6 h-full">
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">settings</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">terminal</span>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary transition-colors">help_outline</span>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar (Bauhaus accent sidebar) -->
+<nav class="bg-surface-container-low border-r border-outline flex flex-col items-center py-6 space-y-4 w-16 h-full shrink-0">
+<div class="flex flex-col items-center mb-8">
+<span class="font-display text-sm font-bold tracking-tight">DIR</span>
+<span class="font-mono text-[8px] text-outline">V1.0.4</span>
+</div>
+<button class="p-3 text-on-surface-variant hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined">chat_bubble_outline</span>
+</button>
+<button class="p-3 text-on-surface-variant hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined">analytics</span>
+</button>
+<button class="p-3 text-on-surface-variant hover:bg-surface-container transition-all">
+<span class="material-symbols-outlined">fact_check</span>
+</button>
+<button class="p-3 bg-primary text-on-primary rounded-none shadow-[4px_4px_0px_#410007] transition-all transform hover:-translate-x-0.5 hover:-translate-y-0.5 active:translate-x-0 active:translate-y-0 active:shadow-none">
+<span class="material-symbols-outlined">account_tree</span>
+</button>
+<div class="mt-auto pb-4 flex flex-col items-center space-y-4">
+<div class="w-3 h-3 bg-secondary rounded-full animate-pulse"></div>
+<span class="material-symbols-outlined text-on-surface-variant hover:text-primary cursor-pointer">account_circle</span>
+</div>
+</nav>
+<!-- Main Workspace -->
+<main class="flex-1 flex overflow-hidden">
+<!-- Folder Tree Panel -->
+<section class="w-72 border-r border-outline flex flex-col bg-surface-bright custom-scrollbar overflow-y-auto">
+<div class="h-10 border-b border-outline px-4 flex items-center justify-between bg-surface-container-high">
+<span class="font-mono text-[10px] uppercase font-bold tracking-widest text-on-surface">Explorer</span>
+<div class="flex space-x-2">
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant hover:text-primary cursor-pointer">create_new_folder</span>
+<span class="material-symbols-outlined text-[18px] text-on-surface-variant hover:text-primary cursor-pointer">note_add</span>
+</div>
+</div>
+<div class="p-2 space-y-0.5">
+<!-- Tree Level 0 -->
+<div class="flex items-center p-2 hover:bg-surface-container cursor-pointer group">
+<span class="material-symbols-outlined text-lg mr-2 text-on-surface-variant">keyboard_arrow_down</span>
+<span class="material-symbols-outlined text-lg mr-2 text-primary">folder</span>
+<span class="font-mono text-xs text-primary font-bold uppercase tracking-tight">PROJECT_ALPHA</span>
+</div>
+<!-- Tree Level 1 -->
+<div class="ml-4 space-y-0.5">
+<div class="flex items-center p-2 hover:bg-surface-container cursor-pointer">
+<span class="material-symbols-outlined text-lg mr-2 text-on-surface-variant">keyboard_arrow_down</span>
+<span class="material-symbols-outlined text-lg mr-2 text-on-surface-variant">folder</span>
+<span class="font-mono text-xs text-on-surface-variant uppercase">SRC</span>
+</div>
+<!-- Tree Level 2 -->
+<div class="ml-6 border-l-2 border-primary-fixed pl-2 space-y-0.5">
+<div class="flex items-center p-2 hover:bg-surface-container cursor-pointer">
+<span class="material-symbols-outlined text-lg mr-2 text-on-surface-variant">description</span>
+<span class="font-mono text-xs text-on-surface-variant">CORE_LOGIC.SYS</span>
+</div>
+<div class="flex items-center p-2 bg-primary text-on-primary cursor-pointer shadow-[2px_2px_0px_rgba(0,0,0,0.2)]">
+<span class="material-symbols-outlined text-lg mr-2">database</span>
+<span class="font-mono text-xs font-bold">METADATA.JSON</span>
+</div>
+<div class="flex items-center p-2 hover:bg-surface-container cursor-pointer">
+<span class="material-symbols-outlined text-lg mr-2 text-on-surface-variant">description</span>
+<span class="font-mono text-xs text-on-surface-variant">RENDER_PIPELINE.SYS</span>
+</div>
+</div>
+<div class="flex items-center p-2 hover:bg-surface-container cursor-pointer">
+<span class="material-symbols-outlined text-lg mr-2 text-on-surface-variant">keyboard_arrow_right</span>
+<span class="material-symbols-outlined text-lg mr-2 text-on-surface-variant">folder</span>
+<span class="font-mono text-xs text-on-surface-variant uppercase">ASSETS</span>
+</div>
+</div>
+<div class="flex items-center p-2 hover:bg-surface-container cursor-pointer">
+<span class="material-symbols-outlined text-lg mr-2 text-on-surface-variant">keyboard_arrow_right</span>
+<span class="material-symbols-outlined text-lg mr-2 text-on-surface-variant">folder</span>
+<span class="font-mono text-xs text-on-surface-variant uppercase">DOCS</span>
+</div>
+<div class="flex items-center p-2 hover:bg-surface-container cursor-pointer">
+<span class="material-symbols-outlined text-lg mr-2 text-on-surface-variant">terminal</span>
+<span class="font-mono text-xs text-on-surface-variant uppercase">ENV.LOCAL</span>
+</div>
+</div>
+</section>
+<!-- Detailed Properties View -->
+<section class="flex-1 flex flex-col bg-background relative overflow-hidden">
+<!-- Toolbar: Essential Tools (Bauhaus blocky style) -->
+<div class="h-12 border-b border-outline flex items-center justify-between px-8 bg-surface-container-lowest">
+<div class="flex items-center space-x-8 h-full">
+<button class="flex items-center space-x-3 group h-full px-2 border-b-2 border-transparent hover:border-primary transition-all">
+<span class="material-symbols-outlined text-xl text-primary">download</span>
+<span class="font-mono text-[11px] font-bold uppercase tracking-widest text-on-surface group-hover:text-primary">EXPORT DATA</span>
+</button>
+<button class="flex items-center space-x-3 group h-full px-2 border-b-2 border-transparent hover:border-secondary transition-all">
+<span class="material-symbols-outlined text-xl text-secondary">sync</span>
+<span class="font-mono text-[11px] font-bold uppercase tracking-widest text-on-surface group-hover:text-secondary">SYNC_GIT</span>
+</button>
+<button class="flex items-center space-x-3 group h-full px-2 border-b-2 border-transparent hover:border-tertiary transition-all">
+<span class="material-symbols-outlined text-xl text-tertiary">content_copy</span>
+<span class="font-mono text-[11px] font-bold uppercase tracking-widest text-on-surface group-hover:text-tertiary">COPY PATH</span>
+</button>
+</div>
+<div class="flex items-center">
+<div class="flex items-center bg-on-surface text-surface-container-lowest px-3 py-1.5 border border-on-surface shadow-[4px_4px_0px_#b7102a]">
+<span class="w-2 h-2 bg-primary mr-3 animate-pulse"></span>
+<span class="font-mono text-[10px] font-bold tracking-widest">LIVE MONITOR</span>
+</div>
+</div>
+</div>
+<!-- Content Area -->
+<div class="flex-1 p-10 grid grid-cols-12 gap-8 overflow-y-auto custom-scrollbar">
+<!-- File Header -->
+<div class="col-span-12 flex justify-between items-end border-b-4 border-on-surface pb-6">
+<div>
+<div class="flex items-center space-x-3 mb-2">
+<span class="font-mono text-xs text-on-surface-variant font-medium">ROOT / SRC /</span>
+<span class="font-display text-4xl font-bold tracking-tighter text-on-surface">METADATA.JSON</span>
+</div>
+<span class="font-mono text-[10px] text-outline font-bold uppercase tracking-[0.4em]">SYSTEM_MANIFEST // 8F2B_9Z_001</span>
+</div>
+<div class="text-right">
+<span class="font-mono text-[10px] text-on-surface-variant uppercase font-bold tracking-widest block mb-1">Last Modified</span>
+<p class="font-display text-lg font-bold text-primary">2024.05.12 — 14:32:01</p>
+</div>
+</div>
+<!-- Left Column -->
+<div class="col-span-12 lg:col-span-4 space-y-8">
+<!-- Attributes Card -->
+<div class="border-2 border-on-surface bg-surface-container-low p-6 shadow-[8px_8px_0px_#7d5800]">
+<div class="flex justify-between items-center mb-6 border-b-2 border-outline pb-3">
+<span class="font-display text-base font-bold uppercase tracking-tighter">Attributes</span>
+<span class="material-symbols-outlined text-secondary">info</span>
+</div>
+<div class="space-y-4">
+<div class="flex justify-between items-baseline">
+<span class="font-mono text-[11px] font-bold text-on-surface-variant uppercase">SIZE</span>
+<span class="font-display text-lg font-bold">1.24 MB</span>
+</div>
+<div class="flex justify-between items-baseline">
+<span class="font-mono text-[11px] font-bold text-on-surface-variant uppercase">ENCODING</span>
+<span class="font-display text-lg font-bold">UTF-8</span>
+</div>
+<div class="flex justify-between items-baseline">
+<span class="font-mono text-[11px] font-bold text-on-surface-variant uppercase">PERM</span>
+<span class="font-mono text-sm font-bold text-primary">755 (RWX)</span>
+</div>
+</div>
+</div>
+<!-- Visual Meta (Bauhaus themed image block) -->
+<div class="border-2 border-on-surface relative group h-72 bg-on-tertiary-fixed overflow-hidden">
+<img class="w-full h-full object-cover grayscale brightness-75 mix-blend-multiply opacity-80 transition-transform duration-700 group-hover:scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAmlU1UWg2zxzUwbzD74n-FEPx3I1Ac_AYe4ICGQ_KQovGD3UlaVg8ggAyNz4d4LN4cAl-XgynDVBKKG7uAC3wZji3pJAH8MBkbCzeDGGCp9yRm3LZQgeF0MjnepATFryF1M2L9wsniBZDH0W3XUQ41JVSO_ShqhSEdfEEAj_rloG-UeJFku8d5WeQt2zigk8mosOsefx07H7mZ-nA3LX6z6fyZsknYAwWcBAV5aebU-tDFSpVX2RcLxbjpN9ciBH8YSxMaZOZMroId"/>
+<div class="absolute inset-0 knurled-pattern pointer-events-none"></div>
+<div class="absolute top-0 left-0 bg-primary text-on-primary px-4 py-2 font-display font-bold text-sm tracking-tight">PREVIEW_01</div>
+<div class="absolute bottom-4 right-4 flex space-x-1">
+<div class="w-8 h-8 bg-primary"></div>
+<div class="w-8 h-8 bg-secondary"></div>
+<div class="w-8 h-8 bg-tertiary"></div>
+</div>
+</div>
+</div>
+<!-- Right Column -->
+<div class="col-span-12 lg:col-span-8">
+<div class="border-2 border-on-surface h-full bg-surface-container-lowest flex flex-col shadow-[12px_12px_0px_#1a1c1c]">
+<div class="px-6 py-4 border-b-2 border-on-surface bg-surface-container flex justify-between items-center">
+<span class="font-display font-bold uppercase tracking-tight text-on-surface">MANIFEST_STRUCTURE</span>
+<div class="flex space-x-6">
+<button class="font-mono text-[11px] font-bold text-on-surface-variant hover:text-primary">RAW</button>
+<button class="font-mono text-[11px] font-bold text-primary border-b-2 border-primary">VISUAL</button>
+</div>
+</div>
+<div class="p-8 font-mono text-sm leading-relaxed custom-scrollbar overflow-y-auto bg-surface-bright">
+<p class="mb-4 text-primary font-bold">{</p>
+<div class="ml-8 space-y-3">
+<p><span class="text-on-surface font-bold">"id"</span>: <span class="text-secondary">"ALPHA_99"</span>,</p>
+<p><span class="text-on-surface font-bold">"version"</span>: <span class="text-secondary">"1.0.4-STABLE"</span>,</p>
+<p><span class="text-on-surface font-bold">"dependencies"</span>: <span class="text-primary">[</span></p>
+<div class="ml-8 space-y-1">
+<p class="text-on-surface-variant">"CORE_ENGINE_V2",</p>
+<p class="text-on-surface-variant">"ASSET_LOADER_X",</p>
+<p class="text-on-surface-variant">"RECON_SYSTEM_PRO"</p>
+</div>
+<p><span class="text-primary">]</span>,</p>
+<p><span class="text-on-surface font-bold">"metadata"</span>: <span class="text-tertiary">{</span></p>
+<div class="ml-8">
+<p><span class="text-on-surface">"compiler"</span>: <span class="text-on-surface-variant">"RUST_GENTOO"</span>,</p>
+<p><span class="text-on-surface">"integrity"</span>: <span class="text-primary">"pass"</span></p>
+</div>
+<p><span class="text-tertiary">}</span></p>
+</div>
+<p class="mt-4 text-primary font-bold">}</p>
+<!-- Graphic UI Element (Bauhaus Chart) -->
+<div class="mt-12 pt-8 border-t-2 border-outline-variant">
+<div class="flex justify-between items-end mb-6">
+<span class="font-display text-sm font-bold uppercase tracking-tight text-on-surface">System Load Visualization</span>
+<span class="font-mono text-[10px] font-bold text-primary">CRITICAL_RANGE: 85%</span>
+</div>
+<div class="flex items-end h-32 space-x-2">
+<div class="flex-1 bg-surface-container-highest h-[15%]"></div>
+<div class="flex-1 bg-surface-container-highest h-[40%]"></div>
+<div class="flex-1 bg-secondary h-[65%]"></div>
+<div class="flex-1 bg-primary h-[90%] relative shadow-[4px_-4px_0px_#410007]">
+<div class="absolute -top-8 left-0 right-0 text-center font-mono text-[10px] font-bold bg-on-surface text-surface px-1 py-0.5">CRIT</div>
+</div>
+<div class="flex-1 bg-tertiary h-[75%]"></div>
+<div class="flex-1 bg-surface-container-highest h-[30%]"></div>
+<div class="flex-1 bg-surface-container-highest h-[55%]"></div>
+<div class="flex-1 bg-secondary h-[45%]"></div>
+<div class="flex-1 bg-surface-container-highest h-[20%]"></div>
+<div class="flex-1 bg-primary h-[80%]"></div>
+</div>
+<div class="flex justify-between mt-4">
+<span class="font-mono text-[9px] text-outline font-bold">00:00</span>
+<span class="font-mono text-[9px] text-outline font-bold">T-MINUS</span>
+<span class="font-mono text-[9px] text-outline font-bold">MAX_LAT</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Status Bar -->
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-between items-center px-8 bg-surface-container-lowest h-10 border-t-2 border-on-surface">
+<div class="flex items-center space-x-8 h-full">
+<span class="font-mono text-[10px] font-bold tracking-[0.2em] text-on-surface uppercase">SYSTEM_READY // AI_ACTIVE</span>
+<div class="h-4 w-[2px] bg-primary"></div>
+<span class="font-mono text-[10px] text-primary font-black uppercase">PATH: /ROOT/PROJECT_ALPHA/METADATA.JSON</span>
+</div>
+<div class="flex items-center space-x-8 h-full">
+<div class="flex items-center space-x-3">
+<span class="w-3 h-3 bg-secondary"></span>
+<span class="font-mono text-[10px] font-bold text-on-surface-variant uppercase">LATENCY: 24MS</span>
+</div>
+<button class="font-mono text-[10px] font-bold text-on-surface-variant uppercase hover:text-primary border-b border-transparent hover:border-primary transition-all">LOG_FILE</button>
+<div class="flex items-center space-x-2">
+<span class="material-symbols-outlined text-[16px] text-primary">terminal</span>
+<span class="font-mono text-[10px] font-bold text-on-surface">UTF-8 // BAUHAUS_SYS</span>
+</div>
+</div>
+</footer>
+</section>
+</main>
+</div>
+</body></html>

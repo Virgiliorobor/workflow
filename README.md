@@ -26,11 +26,36 @@ python -m http.server 3000
 
 Then open [http://localhost:3000](http://localhost:3000) in your browser.
 
-## Deploying to Netlify
+## Deploying to GitHub and Netlify
 
-1. Push to GitHub
-2. Connect the repo in Netlify (publish directory: `/`)
-3. Every push auto-deploys
+### 1. GitHub
+
+Create a new empty repository on GitHub (no README/license if you already have them locally). Then from this folder:
+
+```powershell
+cd "C:\Users\jaime\OneDrive\dev\Workflow"
+git remote add origin https://github.com/YOUR_USER/YOUR_REPO.git
+git branch -M main   # optional; use main if you prefer it over master
+git push -u origin master   # or: git push -u origin main
+```
+
+### 2. Netlify
+
+1. Log in at [Netlify](https://app.netlify.com) → **Add new site** → **Import an existing project** → **GitHub**, and authorize Netlify.
+2. Pick the repository. Netlify reads **`netlify.toml`**: publish directory is the repo root (`.`).
+3. Leave **build command** blank (static HTML/CSS/JS). Deploy.
+
+Each push to the linked branch triggers a new deploy.
+
+### 3. Optional: point the live site at your API
+
+AI features need the FastAPI backend hosted separately (for example Render, Fly.io, or Railway). Set the public API URL before `app.js` / `chat.js` load, for example via Netlify **Site configuration → Snippets** — inject in `<head>`:
+
+```html
+<script>window.ICM_BACKEND_URL = 'https://your-api.example.com';</script>
+```
+
+Or add that line to `index.html` on a deploy branch. Without this, the wizard and ZIP download still work; only “Improve with AI” and “Build with AI conversation” stay disabled.
 
 ## Optional: AI Backend
 

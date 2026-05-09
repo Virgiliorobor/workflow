@@ -1,0 +1,5 @@
+# Static site — repo root is the publish folder (index.html, css/, js/).
+# Build command left empty; Netlify still serves the files on each deploy.
+
+[build]
+  publish = "."

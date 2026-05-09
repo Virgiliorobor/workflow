@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&amp;family=Inter:wght@400;500;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        body {
+            background-color: #f9f9f9;
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        .material-symbols-outlined {
+            font-size: 20px;
+            display: inline-block;
+            line-height: 1;
+        }
+        .knurled-texture {
+            background-image: radial-gradient(#b7102a 0.5px, transparent 0.5px);
+            background-size: 4px 4px;
+            opacity: 0.05;
+        }
+        .terminal-grid {
+            background-size: 32px 32px;
+            background-image: linear-gradient(to right, #e8e8e8 1px, transparent 1px), linear-gradient(to bottom, #e8e8e8 1px, transparent 1px);
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#b7102a", /* Red */
+                        "secondary": "#7d5800", /* Yellow-ish/Ochre */
+                        "tertiary": "#465d81", /* Blue */
+                        "on-primary": "#ffffff",
+                        "surface": "#f9f9f9",
+                        "surface-container": "#eeeeee",
+                        "surface-container-high": "#e8e8e8",
+                        "surface-container-highest": "#e2e2e2",
+                        "on-surface": "#1a1c1c",
+                        "on-surface-variant": "#5b403f",
+                        "outline": "#8f6f6e",
+                        "outline-variant": "#e4bebc",
+                        "secondary-container": "#ffb702", /* Bauhaus Yellow */
+                        "tertiary-container": "#5f759b" /* Bauhaus Blue */
+                    },
+                    "spacing": {
+                        "grid-margin": "32px",
+                        "grid-gutter": "16px",
+                        "unit": "4px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Space Grotesk"],
+                        "headline-md": ["Space Grotesk"],
+                        "body-rg": ["Inter"],
+                        "label-caps": ["JetBrains Mono"],
+                        "technical-sm": ["JetBrains Mono"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                        "technical-sm": ["10px", {"lineHeight": "1.2", "fontWeight": "400"}]
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col font-body-rg">
+<!-- TopAppBar -->
+<header class="bg-white border-b-2 border-on-surface fixed top-0 w-full z-50 flex justify-between items-center px-grid-margin h-14">
+<div class="flex items-center">
+<span class="font-display-lg text-2xl font-bold text-on-surface border-r-2 border-on-surface pr-6 mr-6 uppercase tracking-tighter">OS/FOLDER</span>
+<nav class="hidden md:flex space-x-8">
+<span class="font-label-caps text-primary border-b-2 border-primary pb-1">ONBOARDING</span>
+<span class="font-label-caps text-on-surface-variant hover:text-tertiary cursor-pointer transition-colors">REVIEW</span>
+<span class="font-label-caps text-on-surface-variant hover:text-tertiary cursor-pointer transition-colors">WORKSPACE</span>
+</nav>
+</div>
+<div class="flex items-center space-x-2">
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-highest transition-colors p-2" data-icon="terminal">terminal</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-secondary-container transition-colors p-2" data-icon="settings">settings</button>
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-tertiary-container hover:text-white transition-colors p-2" data-icon="help_outline">help_outline</button>
+</div>
+</header>
+<div class="flex flex-1 pt-14">
+<!-- SideNavBar -->
+<aside class="hidden md:flex flex-col items-center py-6 space-y-4 border-r-2 border-on-surface bg-white w-20 fixed left-0 h-[calc(100vh-56px)]">
+<div class="flex flex-col items-center space-y-6 w-full">
+<!-- Active State using Primary Red -->
+<div class="bg-primary text-on-primary w-12 h-12 flex items-center justify-center shadow-[4px_4px_0px_0px_rgba(0,0,0,0.1)] hover:translate-x-0.5 hover:translate-y-0.5 transition-all">
+<span class="material-symbols-outlined" data-icon="chat_bubble_outline">chat_bubble_outline</span>
+</div>
+<!-- Secondary/Tertiary Accents for icons -->
+<div class="text-on-surface-variant hover:bg-secondary-container w-12 h-12 flex items-center justify-center transition-all">
+<span class="material-symbols-outlined" data-icon="analytics">analytics</span>
+</div>
+<div class="text-on-surface-variant hover:bg-tertiary-container hover:text-white w-12 h-12 flex items-center justify-center transition-all">
+<span class="material-symbols-outlined" data-icon="fact_check">fact_check</span>
+</div>
+<div class="text-on-surface-variant hover:bg-surface-container-high w-12 h-12 flex items-center justify-center transition-all">
+<span class="material-symbols-outlined" data-icon="account_tree">account_tree</span>
+</div>
+</div>
+<div class="mt-auto flex flex-col items-center space-y-3">
+<span class="font-label-caps text-[9px] text-on-surface-variant">V1.0.4</span>
+<div class="w-2 h-2 bg-primary"></div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 md:ml-20 mb-8 terminal-grid relative flex flex-col items-center justify-center p-grid-margin">
+<!-- Bauhaus System Status Header -->
+<div class="absolute top-10 left-10 border-2 border-on-surface bg-white p-5 hidden lg:block w-56 shadow-[8px_8px_0px_0px_rgba(183,16,42,0.2)]">
+<div class="flex items-center justify-between mb-3">
+<span class="font-label-caps text-on-surface-variant uppercase">SYSTEM STATUS</span>
+<div class="w-3 h-3 bg-secondary-container border border-on-surface"></div>
+</div>
+<div class="space-y-1.5 mb-4">
+<div class="h-1.5 bg-surface-container-highest w-full"></div>
+<div class="h-1.5 bg-tertiary-container w-3/4"></div>
+<div class="h-1.5 bg-primary w-1/2"></div>
+</div>
+<div class="font-label-caps text-[10px] text-on-surface leading-tight">
+                LATENCY: <span class="text-primary font-bold">24MS</span><br/>
+                READY: <span class="text-tertiary font-bold">PROJECT_ALPHA</span>
+</div>
+</div>
+<!-- Central Terminal Module -->
+<section class="w-full max-w-3xl border-2 border-on-surface bg-white shadow-[12px_12px_0px_0px_rgba(0,0,0,0.05)] flex flex-col relative">
+<!-- Terminal Header -->
+<div class="border-b-2 border-on-surface px-6 py-3 flex justify-between items-center bg-white">
+<div class="flex items-center space-x-3">
+<div class="w-3 h-3 bg-primary border border-on-surface"></div>
+<span class="font-headline-md text-lg uppercase tracking-tight">DIRECTORY_GEN // SESSION_01</span>
+</div>
+<span class="font-label-caps text-on-surface-variant">INIT_SEQUENCE: <span class="text-tertiary">SUCCESS</span></span>
+</div>
+<!-- Chat Display Area -->
+<div class="p-8 md:p-12 space-y-10 h-[500px] overflow-y-auto">
+<!-- AI Entry -->
+<div class="flex flex-col space-y-3">
+<div class="flex items-center space-x-3">
+<span class="font-label-caps text-primary uppercase">[SYSTEM.PROMPT]</span>
+<div class="h-[2px] flex-1 bg-surface-container-highest"></div>
+</div>
+<p class="font-label-caps text-base text-on-surface leading-relaxed">
+                        CONNECTION ESTABLISHED. I AM READY TO ANALYZE YOUR PROJECT PARAMETERS. PLEASE PROVIDE A CORE DESCRIPTION OF THE ARCHITECTURE YOU INTEND TO BUILD.
+                    </p>
+</div>
+<!-- User Entry -->
+<div class="flex flex-col space-y-3 pl-8 border-l-4 border-secondary-container">
+<div class="flex items-center space-x-3">
+<span class="font-label-caps text-on-surface-variant uppercase">[USER.INPUT]</span>
+</div>
+<p class="font-label-caps text-base text-on-surface-variant italic">
+                        Building a decentralized data indexing protocol for industrial IoT sensors.
+                    </p>
+</div>
+<!-- AI Entry -->
+<div class="flex flex-col space-y-3">
+<div class="flex items-center space-x-3">
+<span class="font-label-caps text-tertiary uppercase">[SYSTEM.RESPONSE]</span>
+<div class="h-[2px] flex-1 bg-surface-container-highest"></div>
+</div>
+<p class="font-label-caps text-base text-on-surface leading-relaxed">
+                        UNDERSTOOD. DECENTRALIZED ARCHITECTURE DETECTED. <br/><br/>
+                        QUERY: WHAT IS THE ANTICIPATED DATA THROUGHPUT PER NODE IN KILOBYTES PER SECOND?
+                    </p>
+</div>
+</div>
+<!-- Input Field (Bauhaus Style) -->
+<div class="border-t-2 border-on-surface p-6 bg-white flex items-center relative overflow-hidden">
+<div class="absolute inset-0 knurled-texture pointer-events-none"></div>
+<span class="font-headline-md text-primary mr-4 z-10">&gt;</span>
+<input class="flex-1 bg-transparent border-none focus:ring-0 font-label-caps text-lg text-on-surface placeholder:text-surface-container-highest z-10" placeholder="Describe your project throughput..." type="text"/>
+<button class="border-2 border-on-surface px-8 py-3 bg-primary text-on-primary font-label-caps uppercase transition-all hover:bg-secondary-container hover:text-on-surface shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] active:shadow-none active:translate-x-1 active:translate-y-1 z-10">
+                    EXECUTE
+                </button>
+</div>
+</section>
+<!-- Decorative Industrial Indicators -->
+<div class="mt-12 flex space-x-12">
+<div class="flex flex-col items-center">
+<div class="font-label-caps text-[11px] uppercase text-on-surface-variant mb-3">IO_LOAD</div>
+<div class="flex space-x-1.5">
+<div class="w-2 h-5 bg-primary border border-on-surface"></div>
+<div class="w-2 h-5 bg-primary border border-on-surface"></div>
+<div class="w-2 h-5 bg-primary border border-on-surface"></div>
+<div class="w-2 h-5 bg-surface-container-highest border border-on-surface"></div>
+<div class="w-2 h-5 bg-surface-container-highest border border-on-surface"></div>
+</div>
+</div>
+<div class="flex flex-col items-center">
+<div class="font-label-caps text-[11px] uppercase text-on-surface-variant mb-3">CACHE_SYNC</div>
+<div class="flex space-x-1.5">
+<div class="w-2 h-5 bg-tertiary border border-on-surface"></div>
+<div class="w-2 h-5 bg-surface-container-highest border border-on-surface"></div>
+<div class="w-2 h-5 bg-surface-container-highest border border-on-surface"></div>
+<div class="w-2 h-5 bg-surface-container-highest border border-on-surface"></div>
+<div class="w-2 h-5 bg-surface-container-highest border border-on-surface"></div>
+</div>
+</div>
+<div class="flex flex-col items-center">
+<div class="font-label-caps text-[11px] uppercase text-on-surface-variant mb-3">PWR_GRID</div>
+<div class="flex space-x-1.5">
+<div class="w-2 h-5 bg-secondary-container border border-on-surface"></div>
+<div class="w-2 h-5 bg-secondary-container border border-on-surface"></div>
+<div class="w-2 h-5 bg-secondary-container border border-on-surface"></div>
+<div class="w-2 h-5 bg-secondary-container border border-on-surface"></div>
+<div class="w-2 h-5 bg-surface-container-highest border border-on-surface"></div>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Footer -->
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-between items-center px-grid-margin h-10 bg-white border-t-2 border-on-surface">
+<div class="font-label-caps text-[11px] text-on-surface uppercase flex items-center">
+<span class="w-2 h-2 bg-tertiary mr-3"></span>
+        SYSTEM_READY // AI_ACTIVE
+    </div>
+<div class="flex space-x-8">
+<a class="font-label-caps text-[11px] text-on-surface-variant hover:text-primary transition-colors uppercase" href="#">PATH: /ROOT/PROJECT_ALPHA</a>
+<a class="font-label-caps text-[11px] text-on-surface-variant hover:text-tertiary transition-colors uppercase" href="#">LOG_ARCHIVE</a>
+</div>
+</footer>
+</body></html>

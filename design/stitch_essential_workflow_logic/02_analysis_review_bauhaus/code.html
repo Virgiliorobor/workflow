@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>DIRECTORY_GEN // Bauhaus Industrial Analysis</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&amp;family=Inter:wght@400;500;700&amp;family=JetBrains+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .knurled-overlay {
+            background-image: radial-gradient(circle, currentColor 1px, transparent 1px);
+            background-size: 4px 4px;
+            opacity: 0.1;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Bauhaus specific geometric accents */
+        .bauhaus-border { border-width: 2px; }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#b7102a", /* Red */
+                        "secondary": "#7d5800", /* Yellow (Darker for readability) */
+                        "secondary-container": "#ffb702", /* Bright Yellow */
+                        "tertiary": "#465d81", /* Blue */
+                        "tertiary-container": "#5f759b",
+                        "background": "#f9f9f9",
+                        "surface": "#ffffff",
+                        "on-surface": "#1a1c1c",
+                        "on-surface-variant": "#5b403f",
+                        "outline": "#1a1c1c", /* Thick black borders for Bauhaus */
+                        "outline-variant": "#e4bebc",
+                        "surface-container": "#eeeeee",
+                        "surface-container-high": "#e8e8e8",
+                        "surface-container-low": "#f3f3f3",
+                        "on-primary": "#ffffff",
+                        "on-secondary": "#ffffff",
+                        "on-tertiary": "#ffffff"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0px", /* Bauhaus uses sharp corners */
+                        "lg": "0px",
+                        "xl": "0px",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "margin-mobile": "16px",
+                        "unit": "4px",
+                        "gutter": "16px",
+                        "grid-pattern-size": "32px",
+                        "grid-margin": "32px",
+                        "lg": "24px",
+                        "md": "16px",
+                        "sm": "8px",
+                        "xs": "4px",
+                        "xl": "48px"
+                    },
+                    "fontFamily": {
+                        "display-lg": ["Space Grotesk", "sans-serif"],
+                        "body-rg": ["Inter", "sans-serif"],
+                        "technical-sm": ["JetBrains Mono", "monospace"],
+                        "headline-md": ["Space Grotesk", "sans-serif"],
+                        "label-caps": ["JetBrains Mono", "monospace"],
+                        "headline-lg": ["Space Grotesk"],
+                        "headline-sm": ["Space Grotesk"],
+                        "label-mono-sm": ["JetBrains Mono"],
+                        "label-mono-lg": ["JetBrains Mono"],
+                        "body-sm": ["Inter"],
+                        "body-lg": ["Inter"]
+                    },
+                    "fontSize": {
+                        "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                        "body-rg": ["16px", {"lineHeight": "1.5", "letterSpacing": "0", "fontWeight": "400"}],
+                        "technical-sm": ["10px", {"lineHeight": "1.2", "fontWeight": "400"}],
+                        "headline-md": ["24px", {"lineHeight": "1.2", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                        "label-caps": ["12px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                        "headline-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.04em", "fontWeight": "700"}],
+                        "headline-sm": ["20px", {"lineHeight": "1.4", "letterSpacing": "0em", "fontWeight": "600"}],
+                        "label-mono-sm": ["11px", {"lineHeight": "1", "letterSpacing": "0.1em", "fontWeight": "500"}],
+                        "label-mono-lg": ["14px", {"lineHeight": "1", "letterSpacing": "0.05em", "fontWeight": "500"}]
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background text-on-surface font-body-sm overflow-hidden h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="bg-surface border-b-2 border-outline flex justify-between items-center w-full px-grid-margin h-14 sticky top-0 z-50">
+<div class="flex items-center h-full">
+<span class="font-display-lg text-[24px] font-bold text-primary border-r-2 border-outline pr-6 py-2">OS/FOLDER</span>
+<nav class="hidden md:flex ml-6 space-x-8">
+<span class="font-label-caps text-primary cursor-pointer hover:underline underline-offset-4">REVIEW</span>
+<span class="font-label-caps text-on-surface-variant hover:text-tertiary transition-colors duration-75 cursor-pointer">LOGS</span>
+<span class="font-label-caps text-on-surface-variant hover:text-tertiary transition-colors duration-75 cursor-pointer">CONFIG</span>
+</nav>
+</div>
+<div class="flex items-center space-x-4">
+<button class="material-symbols-outlined text-on-surface hover:bg-secondary-container p-2 border border-transparent hover:border-outline">settings</button>
+<button class="material-symbols-outlined text-on-surface hover:bg-secondary-container p-2 border border-transparent hover:border-outline">terminal</button>
+<button class="material-symbols-outlined text-on-surface hover:bg-secondary-container p-2 border border-transparent hover:border-outline">help_outline</button>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- SideNavBar -->
+<aside class="bg-surface border-r-2 border-outline flex flex-col items-center py-6 space-y-6 w-20 h-full shrink-0">
+<div class="flex flex-col items-center mb-6">
+<div class="w-10 h-10 bg-primary flex items-center justify-center mb-2 bauhaus-border border-outline">
+<span class="material-symbols-outlined text-on-primary">memory</span>
+</div>
+<span class="font-technical-sm text-[8px] text-center opacity-70 uppercase">V1.0.4</span>
+</div>
+<button class="w-14 h-14 flex items-center justify-center text-on-surface hover:bg-secondary-container hover:border-2 border-outline transition-all">
+<span class="material-symbols-outlined">chat_bubble_outline</span>
+</button>
+<button class="w-14 h-14 flex items-center justify-center bg-tertiary text-on-tertiary border-2 border-outline transition-all">
+<span class="material-symbols-outlined">analytics</span>
+</button>
+<button class="w-14 h-14 flex items-center justify-center text-on-surface hover:bg-secondary-container hover:border-2 border-outline transition-all">
+<span class="material-symbols-outlined">fact_check</span>
+</button>
+<button class="w-14 h-14 flex items-center justify-center text-on-surface hover:bg-secondary-container hover:border-2 border-outline transition-all">
+<span class="material-symbols-outlined">account_tree</span>
+</button>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto p-grid-margin relative">
+<!-- Page Header -->
+<div class="mb-lg border-b-4 border-outline pb-4 flex justify-between items-end">
+<div>
+<h1 class="font-display-lg uppercase tracking-tighter">AI Analysis &amp; Review</h1>
+<p class="font-label-caps text-tertiary mt-1">SESSION_ID: 99x-ALPHA-01 // STATUS: <span class="bg-secondary-container text-on-surface px-1">PARAMETERS_EXTRACTED</span></p>
+</div>
+<div class="flex space-x-2">
+<button class="px-md h-10 border-2 border-outline font-label-caps hover:bg-surface-container transition-colors bg-white">Export Report</button>
+<button class="px-md h-10 bg-primary text-on-primary font-label-caps border-2 border-outline relative overflow-hidden active:translate-y-0.5 transition-transform">
+<span class="relative z-10">Commit All</span>
+<div class="absolute inset-0 knurled-overlay"></div>
+</button>
+</div>
+</div>
+<!-- Bento Grid -->
+<div class="grid grid-cols-12 gap-0 border-2 border-outline">
+<!-- Project Scope -->
+<div class="col-span-12 md:col-span-8 bg-surface p-lg border-r-2 border-outline">
+<div class="flex items-center mb-md">
+<span class="w-4 h-4 bg-primary mr-3 border border-outline"></span>
+<h2 class="font-headline-sm uppercase">Project Scope</h2>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="border-2 border-outline p-md bg-surface-container-low">
+<p class="font-label-caps text-on-surface-variant text-[10px] mb-xs">ENTITY_NAME</p>
+<p class="font-headline-sm uppercase text-primary">Cyber-Physical Core</p>
+</div>
+<div class="border-2 border-outline p-md bg-surface-container-low">
+<p class="font-label-caps text-on-surface-variant text-[10px] mb-xs">DEP_VERSION</p>
+<p class="font-headline-sm uppercase text-tertiary">V4.2.0-STABLE</p>
+</div>
+<div class="col-span-2 border-2 border-outline p-md bg-white">
+<p class="font-label-caps text-on-surface-variant text-[10px] mb-xs">SCOPE_DESCRIPTION</p>
+<p class="font-body-lg leading-relaxed">Full-stack structural migration including directory restructuring, permission auditing, and symlink optimization for distributed environments.</p>
+</div>
+</div>
+</div>
+<!-- Environment Details -->
+<div class="col-span-12 md:col-span-4 bg-surface p-lg">
+<div class="flex items-center mb-md">
+<span class="w-4 h-4 bg-secondary-container mr-3 border border-outline"></span>
+<h2 class="font-headline-sm uppercase">Target Environment</h2>
+</div>
+<ul class="space-y-2">
+<li class="flex justify-between items-center py-2 border-b-2 border-surface-container">
+<span class="font-label-caps text-on-surface-variant">OS_KERNEL</span>
+<span class="font-label-caps font-bold">UNIX-BASED (DARWIN)</span>
+</li>
+<li class="flex justify-between items-center py-2 border-b-2 border-surface-container">
+<span class="font-label-caps text-on-surface-variant">FILE_SYSTEM</span>
+<span class="font-label-caps font-bold">APFS / EXT4</span>
+</li>
+<li class="flex justify-between items-center py-2 border-b-2 border-surface-container">
+<span class="font-label-caps text-on-surface-variant">REMOTE_REPO</span>
+<span class="font-label-caps font-bold text-tertiary">AWS_EC2_CLUSTER_09</span>
+</li>
+</ul>
+<div class="mt-8 bg-tertiary text-on-tertiary p-4 border-2 border-outline flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px] mr-3">lan</span>
+<span class="font-label-caps">LATENCY: 24MS // UPTIME: 99.9%</span>
+</div>
+</div>
+<!-- File Naming Conventions -->
+<div class="col-span-12 bg-surface p-lg border-t-2 border-outline">
+<div class="flex items-center mb-md justify-between">
+<div class="flex items-center">
+<span class="w-4 h-4 bg-tertiary mr-3 border border-outline"></span>
+<h2 class="font-headline-sm uppercase">File Naming Conventions</h2>
+</div>
+<span class="font-label-caps px-4 py-1 bg-primary text-on-primary border-2 border-outline">VALIDATED</span>
+</div>
+<div class="flex flex-wrap gap-4">
+<div class="px-4 py-2 border-2 border-outline flex items-center bg-white hover:bg-secondary-container transition-colors">
+<span class="w-2 h-2 bg-primary mr-3"></span>
+<span class="font-label-caps">SNAKE_CASE_ONLY</span>
+</div>
+<div class="px-4 py-2 border-2 border-outline flex items-center bg-white hover:bg-secondary-container transition-colors">
+<span class="w-2 h-2 bg-secondary-container mr-3 border border-outline"></span>
+<span class="font-label-caps">NO_SPECIAL_CHARS</span>
+</div>
+<div class="px-4 py-2 border-2 border-outline flex items-center bg-white hover:bg-secondary-container transition-colors">
+<span class="w-2 h-2 bg-tertiary mr-3"></span>
+<span class="font-label-caps">MAX_32_LENGTH</span>
+</div>
+<div class="px-4 py-2 border-2 border-outline flex items-center bg-white hover:bg-secondary-container transition-colors">
+<span class="w-2 h-2 bg-on-surface mr-3"></span>
+<span class="font-label-caps">TIMESTAMP_PREFIX_REQ</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Review Questions List -->
+<div class="mt-xl">
+<div class="flex items-center justify-between mb-lg border-b-4 border-primary pb-2">
+<h2 class="font-display-lg text-[32px] uppercase tracking-tighter">Review &amp; Validation</h2>
+<span class="font-label-caps bg-tertiary text-on-tertiary px-3 py-1 border-2 border-outline">4 PENDING</span>
+</div>
+<div class="space-y-4">
+<!-- Question Item 1 -->
+<div class="bg-surface border-2 border-outline p-lg flex items-start gap-md group hover:bg-surface-container-low transition-colors">
+<div class="flex-1">
+<div class="flex items-center mb-2">
+<span class="font-label-caps text-primary mr-md font-bold">REQ_001</span>
+<span class="px-3 border-2 border-outline font-label-caps text-[10px] bg-secondary-container">SYSTEM_INTEGRITY</span>
+</div>
+<h3 class="font-headline-sm uppercase mb-2">Confirm recursive directory depth of 4 levels?</h3>
+<p class="font-body-rg text-on-surface-variant">The AI detected a high volume of nested directories. Restricting to depth 4 prevents recursion overflow on legacy nodes.</p>
+</div>
+<div class="flex items-center space-x-2 self-center">
+<button class="w-12 h-12 border-2 border-outline flex items-center justify-center hover:bg-primary hover:text-white transition-colors bg-white">
+<span class="material-symbols-outlined">close</span>
+</button>
+<button class="px-8 h-12 bg-tertiary text-on-tertiary border-2 border-outline font-label-caps uppercase flex items-center hover:bg-primary transition-all active:translate-y-0.5">
+<span class="material-symbols-outlined mr-2">check</span>
+                            Confirm
+                        </button>
+</div>
+</div>
+<!-- Question Item 2 -->
+<div class="bg-surface border-2 border-outline p-lg flex items-start gap-md group hover:bg-surface-container-low transition-colors">
+<div class="flex-1">
+<div class="flex items-center mb-2">
+<span class="font-label-caps text-primary mr-md font-bold">REQ_002</span>
+<span class="px-3 border-2 border-outline font-label-caps text-[10px] bg-secondary-container">ACCESS_CONTROL</span>
+</div>
+<h3 class="font-headline-sm uppercase mb-2">Set default CHMOD to 755 for non-binary assets?</h3>
+<p class="font-body-rg text-on-surface-variant">Standardize permissions across the new workspace to ensure read/execute access for automation scripts.</p>
+</div>
+<div class="flex items-center space-x-2 self-center">
+<button class="w-12 h-12 border-2 border-outline flex items-center justify-center hover:bg-primary hover:text-white transition-colors bg-white">
+<span class="material-symbols-outlined">close</span>
+</button>
+<button class="px-8 h-12 bg-tertiary text-on-tertiary border-2 border-outline font-label-caps uppercase flex items-center hover:bg-primary transition-all active:translate-y-0.5">
+<span class="material-symbols-outlined mr-2">check</span>
+                            Confirm
+                        </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Asymmetric Data Visualization Section -->
+<div class="mt-xl grid grid-cols-12 gap-0 border-2 border-outline h-64 bg-background">
+<div class="col-span-4 bg-primary flex flex-col justify-end p-lg relative overflow-hidden border-r-2 border-outline">
+<div class="absolute inset-0 knurled-overlay opacity-30"></div>
+<div class="absolute top-4 left-4 w-12 h-12 border-2 border-on-primary"></div>
+<p class="font-label-caps text-on-primary opacity-80 mb-1">ANALYSIS_CONFIDENCE</p>
+<p class="text-[72px] font-bold text-on-primary leading-none tracking-tighter">98.2<span class="text-2xl">%</span></p>
+<div class="w-full h-2 bg-secondary-container mt-md border border-outline"></div>
+</div>
+<div class="col-span-8 bg-white p-lg relative">
+<div class="flex justify-between items-start mb-md">
+<p class="font-label-caps uppercase text-tertiary font-bold">Memory allocation map</p>
+<div class="flex gap-1">
+<span class="w-4 h-4 bg-primary border border-outline"></span>
+<span class="w-4 h-4 bg-secondary-container border border-outline"></span>
+<span class="w-4 h-4 bg-tertiary border border-outline"></span>
+</div>
+</div>
+<div class="flex items-end gap-2 h-32 border-b-2 border-outline pb-1">
+<div class="flex-1 bg-tertiary h-[40%] border-t border-x border-outline"></div>
+<div class="flex-1 bg-primary h-[60%] border-t border-x border-outline"></div>
+<div class="flex-1 bg-secondary-container h-[35%] border-t border-x border-outline"></div>
+<div class="flex-1 bg-tertiary h-[90%] border-t border-x border-outline"></div>
+<div class="flex-1 bg-primary h-[55%] border-t border-x border-outline"></div>
+<div class="flex-1 bg-secondary-container h-[80%] border-t border-x border-outline"></div>
+<div class="flex-1 bg-tertiary h-[45%] border-t border-x border-outline"></div>
+<div class="flex-1 bg-primary h-[70%] border-t border-x border-outline"></div>
+<div class="flex-1 bg-secondary-container h-[30%] border-t border-x border-outline"></div>
+<div class="flex-1 bg-tertiary h-[95%] border-t border-x border-outline"></div>
+</div>
+<p class="mt-4 font-technical-sm text-on-surface-variant font-bold">BLOCK_SCAN_COMPLETE: 4,096 CHUNKS VERIFIED</p>
+</div>
+</div>
+</main>
+</div>
+<!-- Footer -->
+<footer class="bg-outline text-white flex justify-between items-center px-grid-margin h-10 fixed bottom-0 left-0 w-full z-50">
+<div class="font-label-caps text-[10px] tracking-widest text-secondary-container">
+        SYSTEM_READY // AI_ACTIVE // BAUHAUS_CORE_V1
+    </div>
+<div class="flex space-x-8">
+<span class="font-label-caps text-[10px] tracking-widest hover:text-secondary-container cursor-pointer">PATH: /ROOT/PROJECT_ALPHA</span>
+<span class="font-label-caps text-[10px] tracking-widest hover:text-secondary-container cursor-pointer">LATENCY: 24MS</span>
+<span class="font-label-caps text-[10px] tracking-widest text-primary font-bold bg-white px-2">LOGS</span>
+</div>
+</footer>
+</body></html>
