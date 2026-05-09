@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ICM Workspace Builder</title>
+  <meta name="description" content="Answer guided questions and generate a fully populated AI workspace folder structure — based on the Interpretable Context Methodology.">
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- CDN deps -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+</head>
+<body>
+
+<!-- ── NAV ────────────────────────────────────────────────────────────────── -->
+<nav class="app-nav">
+  <a class="nav-logo" href="#" onclick="window.ICM.app && window.ICM.app.showToast && null">
+    <span class="nav-logo-badge">ICM</span>
+    Workspace Builder
+  </a>
+  <span class="nav-tagline">by Clief Notes / Eduba</span>
+</nav>
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SCREEN: HOME
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-home" class="screen active">
+
+  <div class="home-hero">
+    <div class="home-eyebrow">Interpretable Context Methodology</div>
+    <h1>Build your AI workspace in minutes, not hours</h1>
+    <p>Answer a few guided questions. Get a fully structured folder system that tells Claude where it is, what to do, and where to put the work — every session, from day one.</p>
+
+    <div class="home-actions">
+      <button class="btn-primary" id="btn-new" style="font-size:16px;padding:14px 36px">
+        Build a new workspace →
+      </button>
+      <button class="btn-chat-entry" id="btn-chat" disabled title="Checking AI backend…">
+        ✦ Build with AI conversation
+      </button>
+    </div>
+
+    <div id="resume-banner" class="resume-banner hidden">
+      <span>You have a workspace in progress.</span>
+      <button class="btn-secondary" id="btn-resume" style="padding:8px 16px;font-size:13px">Resume →</button>
+    </div>
+  </div>
+
+  <!-- Re-open -->
+  <div class="reopen-section">
+    <div class="reopen-label">Already have a workspace? Re-open it to edit and re-export.</div>
+    <div id="dropzone">
+      <span class="drop-icon">📂</span>
+      Drag your <strong>workspace-state.json</strong> here, or click to browse
+    </div>
+    <input type="file" id="reopen-input" accept=".json">
+  </div>
+
+  <!-- How it works -->
+  <div class="how-it-works">
+    <h2>How it works</h2>
+    <div class="steps-grid">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h3>Pick your archetype</h3>
+        <p>Content creator, freelancer, developer, small business — or define your own.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h3>Answer guided questions</h3>
+        <p>Each question explains the ICM principle behind it. No guessing why it matters.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h3>See the architecture</h3>
+        <p>An interactive diagram shows how all your files connect. Click any node to preview it.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">4</div>
+        <h3>Download and use</h3>
+        <p>Get a .zip with every file fully populated — not blank templates. Open in Claude Code, Cursor, or any editor.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Layer explainer -->
+  <div style="max-width:720px;margin:0 auto 80px;padding:0 24px;">
+    <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:28px 32px;">
+      <h3 style="font-size:16px;font-weight:700;margin-bottom:20px;">The 6-layer ICM system</h3>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <span style="flex-shrink:0;width:40px;text-align:center;font-size:11px;font-weight:700;padding:3px 0;border-radius:4px;background:rgba(124,58,237,.2);color:#7c3aed;">L0</span>
+          <div><strong>CLAUDE.md</strong> — <span style="color:var(--text2)">Always loaded. The map. Identity, routing table, naming conventions. ~800 tokens.</span></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <span style="flex-shrink:0;width:40px;text-align:center;font-size:11px;font-weight:700;padding:3px 0;border-radius:4px;background:rgba(37,99,235,.2);color:#2563eb;">L1</span>
+          <div><strong>CONTEXT.md</strong> — <span style="color:var(--text2)">Loaded on workspace entry. Stage map, how stages connect, routing logic.</span></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <span style="flex-shrink:0;width:40px;text-align:center;font-size:11px;font-weight:700;padding:3px 0;border-radius:4px;background:rgba(8,145,178,.2);color:#0891b2;">L2</span>
+          <div><strong>Stage contracts</strong> — <span style="color:var(--text2)">One per stage. Loaded per task. Inputs / Process / Output / Done looks like.</span></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <span style="flex-shrink:0;width:40px;text-align:center;font-size:11px;font-weight:700;padding:3px 0;border-radius:4px;background:rgba(217,119,6,.2);color:#d97706;">L3</span>
+          <div><strong>_config/ files</strong> — <span style="color:var(--text2)">Loaded selectively. Voice, format patterns, constraints, business rules. Stable across runs.</span></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <span style="flex-shrink:0;width:40px;text-align:center;font-size:11px;font-weight:700;padding:3px 0;border-radius:4px;background:rgba(107,114,128,.2);color:#9ca3af;">L4</span>
+          <div><strong>output/ directories</strong> — <span style="color:var(--text2)">Working files. Stage N's output is Stage N+1's input. Human review at each handoff.</span></div>
+        </div>
+        <div style="display:flex;gap:14px;align-items:flex-start;">
+          <span style="flex-shrink:0;width:40px;text-align:center;font-size:11px;font-weight:700;padding:3px 0;border-radius:4px;background:rgba(16,185,129,.18);color:#10b981;">L5</span>
+          <div><strong>skill-starters/</strong> — <span style="color:var(--text2)">Optional prompt templates. Reusable “skills” to start work in each stage quickly and consistently.</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /screen-home -->
+
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SCREEN: CHAT (conversational entry → pre-filled wizard)
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-chat" class="screen">
+
+  <div class="chat-header">
+    <button class="btn-ghost" id="chat-back-btn">← Back</button>
+    <div class="chat-header-center">
+      <span class="chat-header-title">✦ Build with AI conversation</span>
+      <span class="chat-header-sub">Describe your project — Claude will pre-fill the wizard for you</span>
+    </div>
+  </div>
+
+  <div class="chat-messages" id="chat-messages"></div>
+
+  <div class="chat-footer">
+    <div class="chat-round-indicator" id="chat-round-indicator"></div>
+    <div class="chat-input-row">
+      <textarea
+        class="chat-input"
+        id="chat-input"
+        placeholder="Describe your project and workflow… (Enter to send · Shift+Enter for new line)"
+        rows="3"
+      ></textarea>
+      <button class="btn-primary chat-send-btn" id="chat-send-btn">Send →</button>
+    </div>
+  </div>
+
+</div><!-- /screen-chat -->
+
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SCREEN: WIZARD
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-wizard" class="screen">
+  <div class="wizard-content" id="wizard-content">
+    <!-- Rendered dynamically by app.js -->
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════════════════════════════
+     SCREEN: RESULTS
+═══════════════════════════════════════════════════════════════════════════ -->
+<div id="screen-results" class="screen">
+
+  <div class="results-header">
+    <h2>Workspace: <span id="results-title"></span></h2>
+    <div class="results-actions">
+      <button class="btn-secondary" id="btn-edit" style="font-size:13px;padding:8px 16px">
+        ✏ Edit Answers
+      </button>
+      <button class="btn-primary" id="btn-download" style="font-size:14px;padding:10px 22px">
+        ⬇ Download Workspace (.zip)
+      </button>
+    </div>
+  </div>
+
+  <div class="results-body">
+
+    <!-- Left: File Tree -->
+    <div class="file-tree-panel">
+      <div class="file-tree-label">Generated Files</div>
+      <div id="file-tree"></div>
+    </div>
+
+    <!-- Right: Tabs -->
+    <div class="right-panel">
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="preview">File Preview</button>
+        <button class="tab-btn" data-tab="diagram">Architecture Diagram</button>
+      </div>
+
+      <!-- Preview tab -->
+      <div class="tab-panel active" id="tab-preview">
+        <div id="file-preview">
+          <div class="preview-empty">
+            ← Click any file to preview its content
+          </div>
+        </div>
+      </div>
+
+      <!-- Diagram tab -->
+      <div class="tab-panel" id="tab-diagram">
+        <div id="diagram-container"></div>
+      </div>
+
+    </div><!-- /right-panel -->
+
+  </div><!-- /results-body -->
+
+</div><!-- /screen-results -->
+
+
+<!-- Tab switching logic -->
+<script>
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.tab-btn');
+  if (!btn) return;
+  const tabId = btn.dataset.tab;
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById(`tab-${tabId}`)?.classList.add('active');
+
+  // Render diagram when tab first becomes visible
+  if (tabId === 'diagram' && window.ICM?.diagram) {
+    const container = document.getElementById('diagram-container');
+    if (container && !container.querySelector('svg') && window._icmCurrentAnswers) {
+      requestAnimationFrame(() => {
+        window.ICM.diagram.render('diagram-container', window._icmCurrentAnswers);
+      });
+    }
+  }
+});
+</script>
+
+<!-- App scripts -->
+<script src="js/questions.js"></script>
+<script src="js/generator.js"></script>
+<script src="js/diagram.js"></script>
+<script src="js/app.js"></script>
+<script src="js/chat.js"></script>
+
+
+</body>
+</html>
