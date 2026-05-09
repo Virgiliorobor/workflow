@@ -322,6 +322,14 @@ isSending = false;   // guard against double-submit
 
 **Stack:** FastAPI + Uvicorn + Anthropic Python SDK + python-dotenv + Pydantic v2.
 
+**Prompt files:** System prompts are stored as plain-text Markdown files in `backend/prompts/` (not inline in `app.py`). They are read from disk on every request via `_load_prompt(name)`, so edits take effect immediately without restarting the server. See [`ai.md`](ai.md) for the full prompt text and field reference.
+
+| File | Used by |
+|------|---------|
+| `backend/prompts/improve.md` | `POST /api/improve` → `_call_claude()` |
+| `backend/prompts/conversation.md` | `POST /api/from-conversation` → `_call_claude_conversation()` |
+| `backend/prompts/improve-skill.md` | `POST /api/improve-skill` → `_call_claude_improve_skill()` |
+
 **Endpoints:**
 
 | Method | Path | Description |
@@ -329,6 +337,7 @@ isSending = false;   // guard against double-submit
 | GET | `/api/health` | Returns `{ status, api_key_configured, message }`. Always 200. |
 | POST | `/api/improve` | Accepts `{ answers }`. Returns `{ improvedAnswers, changeLog, warnings }`. |
 | POST | `/api/from-conversation` | Accepts `{ messages, round }`. Returns `{ needs_more, follow_up?, answers?, summary?, round }`. |
+| POST | `/api/improve-skill` | Accepts `{ name, purpose, trigger, reads[], output, constraints[], archetype, stages, project_name }`. Returns `{ name, purpose, trigger, reads[], output, constraints[] }`. |
 
 **`/api/improve` flow:**
 1. Validates `answers.project_name` and `answers.stages` (min 2)
@@ -356,6 +365,10 @@ isSending = false;   // guard against double-submit
 **Model:** `claude-sonnet-4-6` — good balance of speed and quality for this task. Change in `_call_claude()` if needed.
 
 **Hot reload:** server starts with `uvicorn app:app ... reload=True`, watches the whole `Workflow/` directory for file changes.
+
+**`.env` loading:** `load_dotenv(Path(__file__).parent / ".env", override=True)` — the path is relative to the script file, not the working directory. `override=True` ensures the file beats any stale `ANTHROPIC_API_KEY` already set in the system environment. This is critical: if the backend is launched from the parent `Workflow/` directory (as uvicorn's hot-reload mode does), a bare `load_dotenv()` would look in the wrong directory and fall back to the system env, giving 401 errors even with a correctly written `.env` file. **Always run the backend from the `backend/` folder** — see the Running section below.
+
+**See also:** [`ai.md`](ai.md) — full documentation of all Claude prompts, API call structure, and response validation.
 
 ---
 
@@ -438,15 +451,14 @@ python app.py
 ## Deployment
 
 ### Frontend (Netlify)
-1. Initialize git repo in `Workflow/` (not yet done)
-2. Add `.gitignore`:
+1. Git repo already initialized in `Workflow/`. `.gitignore` is in place:
    ```
    References/
    backend/.venv/
    backend/.env
    backend/__pycache__/
    ```
-3. Push to GitHub
+2. Push to GitHub
 4. Connect to Netlify — publish directory: root (`/`)
 5. For production backend URL, add to `index.html` before the app scripts:
    ```html
@@ -486,6 +498,8 @@ python app.py
 | `&&` not valid in PowerShell for command chaining | Dev environment | Use `;` or separate commands |
 | `#screen-wizard` and `#screen-results` need `display: flex` not `display: block` | `css/styles.css` | Fixed with `#screen-wizard.active { display: flex }` etc. |
 | Preview textarea height is `min-height: 320px` not fill-height | `css/styles.css` | Minor. `#file-preview` is a flex column and `.preview-editor-wrap` has `flex: 1`, but scroll parent breaks full fill. Usable as-is. |
+| `load_dotenv()` without explicit path finds wrong `.env` | `backend/app.py` | Fixed — now uses `Path(__file__).parent / ".env"` with `override=True`. Running the backend from `Workflow/` instead of `backend/` would silently fall back to a stale system env var, causing 401 from Anthropic even with a valid key in `.env`. |
+| Unescaped double quotes in chat handoff string | `js/chat.js` | Fixed — replaced `"Generate Workspace"` inside a double-quoted string with Unicode curly-quote escapes (`\u201c`, `\u201d`). Was causing `SyntaxError: unexpected token: identifier` on load. |
 
 ---
 
@@ -562,3 +576,11 @@ Before pushing to GitHub/Netlify, verify:
 - Home screen now shows "✦ Build with AI conversation" button (disabled when backend offline)
 - Backend health check now runs at startup (not only on results screen) to gate chat button
 - Architecture updated: Three Screens → Four Screens
+- **Bug fix:** `js/chat.js` — `SyntaxError` caused by unescaped double quotes in `handoffMsg` string; fixed with Unicode escapes
+- **Bug fix:** `backend/app.py` — `load_dotenv()` was resolving `.env` relative to cwd, not script dir; fixed with `Path(__file__).parent / ".env"` and `override=True`
+- **Prompt improvement:** `CONVERSATION_SYSTEM_PROMPT` rewritten to list all archetype-specific field IDs, types, and valid enum values; ensures complete wizard pre-fill (not just `project_name`)
+- Added `.gitignore` (`References/`, `backend/.venv/`, `backend/.env`, `backend/__pycache__/`)
+- Git repository initialized and all changes committed
+- Created `ai.md` documenting all Claude prompts and API call structure
+- Moved inline system prompts out of `app.py` into `backend/prompts/improve.md` and `backend/prompts/conversation.md`; loaded per-request via `_load_prompt()` — edit and save to iterate without restarting the backend
+- Added "✦ Improve with AI" to the Skill Creator modal: new `POST /api/improve-skill` endpoint, `_call_claude_improve_skill()` helper, `ImproveSkillRequest/Response` Pydantic models, and `backend/prompts/improve-skill.md` prompt; button is disabled when backend is offline

@@ -116,138 +116,48 @@ class FromConversationResponse(BaseModel):
     round: int                      # next round number (echoed back to client)
 
 
+# ── Skill improvement schema ────────────────────────────────────────────────────
+
+class ImproveSkillRequest(BaseModel):
+    name: str
+    purpose: str = ""
+    trigger: str = ""
+    reads: list[str] = []
+    output: str = ""
+    constraints: list[str] = []
+    archetype: str = "custom"
+    stages: list[dict] = []   # [{label, slug}, ...]
+    project_name: str = ""
+
+
+class ImproveSkillResponse(BaseModel):
+    name: str
+    purpose: str
+    trigger: str
+    reads: list[str]
+    output: str
+    constraints: list[str]
+
+
 # ── HELPERS ────────────────────────────────────────────────────────────────────
 
-SYSTEM_PROMPT = """\
-You are an expert in the Interpretable Context Methodology (ICM), a system for \
-structuring AI workspaces using layered markdown files. \
-Your job is to improve a user's workspace specification without changing their intent.
-
-You will receive a JSON object representing the user's answers to a workspace wizard. \
-Return ONLY valid JSON matching the same structure, with these improvements:
-
-1. stage.description — if empty or vague, write a crisp 1-sentence description.
-2. stage.task — if empty, write a natural-language trigger the user would say to Claude \
-   to start that stage (e.g. "Start the research phase for [topic]").
-3. stage.note — if empty and the stage has a notable constraint, add a brief note.
-4. description (root workspace description) — if short or unclear, expand to 1-2 \
-   clear sentences without inventing domain-specific claims.
-5. voice_patterns — if sparse, add structure without inventing a voice.
-6. writing_prohibitions — if empty, add 3 sensible defaults.
-7. stage.slug — normalize to lowercase-hyphenated, max 24 chars; only change if \
-   currently invalid or empty.
-8. Preserve all other fields exactly as they are — do NOT change archetype, formats, \
-   audience, project_name, team_size, or any field not listed above.
-
-Return a JSON object with two keys:
-- "improvedAnswers": the full answers object with your improvements applied.
-- "changeLog": array of objects { "field": string, "type": "improved"|"filled"|"note", "message": string } \
-  describing each change made (max 12 entries; skip unchanged fields).
-
-Return ONLY the JSON. No markdown fences, no explanations outside the JSON.
-"""
+_PROMPTS_DIR = Path(__file__).parent / "prompts"
 
 
-CONVERSATION_SYSTEM_PROMPT = """\
-You are collecting information to build an ICM (Interpretable Context Methodology) workspace \
-spec. Your goal: extract enough from the conversation to fill as many wizard fields as possible, \
-then return them as a single JSON answers object.
+def _load_prompt(name: str) -> str:
+    """Load a prompt from backend/prompts/<name>.md.
 
-=== FIELDS REQUIRED FOR EVERY ARCHETYPE ===
-
-project_name         string   lowercase-hyphenated (e.g. "my-content-studio")
-description          string   1-2 sentences: what this workspace does
-archetype            string   exactly one of: "content" | "freelancer" | "developer" | "smallbiz" | "custom"
-                              content    = Content creators: videos, articles, newsletters, social posts
-                              freelancer = Freelancers/consultants delivering client projects
-                              developer  = Software developers: planning, coding, testing, deploying
-                              smallbiz   = Small business with recurring operational workflows
-                              custom     = Anything else
-stages               array    2-5 stages, each object: {id, slug, label, description, task, note}
-                              id   = zero-padded index ("01", "02", …)
-                              slug = lowercase-hyphenated folder name (e.g. "research")
-                              label = display name (e.g. "Research")
-                              description = one sentence what happens here
-                              task = trigger phrase (e.g. "Start research for [topic]")
-                              note = routing note or ""
-voice_patterns       string   3 patterns that describe the user's natural writing/communication style
-writing_prohibitions string   AI writing patterns to avoid (em dashes, filler phrases, etc.)
-team_size            string   exactly one of: "Just me" | "2–3 people" | "4+ people"
-
-=== ARCHETYPE-SPECIFIC FIELDS — include ALL of these for the chosen archetype ===
-
-archetype "content":
-  formats             array    pick any from: ["YouTube long-form video", "YouTube Shorts / Reels",
-                               "Blog posts / articles", "Newsletter", "Podcast", "LinkedIn posts",
-                               "Twitter / X threads", "Instagram content", "TikTok",
-                               "Course / educational content", "Other"]
-  process             string   user's 2-4 step creation process (idea → published)
-  audience            string   specific description of who the content is for
-  reference_material  string   brand guides, style rules, topic lists reused across content
-  rejection_criteria  string   patterns that would make the user immediately reject a draft
-
-archetype "freelancer":
-  deliverable         string   what they deliver to clients (format, length, structure)
-  discovery           string   how engagements start / discovery process
-  review_process      string   how client review works, revision policy
-  failure_modes       string   recurring problems in engagements
-  reference_material  string   templates, frameworks, prior work reused across clients
-  post_delivery       string   what happens after delivery
-
-archetype "developer":
-  app_description     string   what they're building and what it does
-  tech_stack          string   frontend, backend, database, deploy stack
-  work_modes          array    pick any from: ["Planning / spec writing", "Writing code", "Testing",
-                               "Documentation", "Code review", "Deployment / DevOps",
-                               "Bug investigation", "Architecture design"]
-  code_standards      string   naming conventions, patterns, rules the codebase follows
-  rejection_criteria  string   what would make them reject AI-generated code
-
-archetype "smallbiz":
-  core_work           string   what the business does repeatedly
-  intake              string   how work comes in and what information arrives with it
-  process_steps       string   steps from work arriving to client receiving deliverable
-  scope_boundaries    string   what they do and explicitly don't do
-  quality_bar         string   what a good deliverable looks like
-
-archetype "custom":
-  what_you_do         string   what they do in this workspace
-  reference_material  string   stable reference material used across all work
-  failure_modes       string   what goes wrong; what the system should prevent
-
-=== DECISION RULE ===
-
-You MUST have project_name, description, archetype, and stages (≥2) to produce output.
-For everything else: infer from context or leave as "" / []. Do NOT ask follow-up questions \
-about voice_patterns, writing_prohibitions, or archetype-specific details — fill with \
-sensible defaults or leave empty so the user can complete them in the wizard.
-
-Ask follow-ups ONLY when you are missing project_name, archetype, or stages. \
-Ask at most 1-2 targeted questions per round in a single, friendly message. \
-Hard cap: after 3 rounds, produce output regardless.
-
-=== RESPONSE FORMAT — JSON only, no markdown, no text outside the JSON ===
-
-When you need more info:
-{"needs_more": true, "follow_up": "your message", "round": <current_round + 1>}
-
-When you have enough (or are forced to produce output):
-{
-  "needs_more": false,
-  "answers": {
-    "project_name": "...",
-    "description": "...",
-    "archetype": "...",
-    [all archetype-specific fields for the chosen archetype],
-    "stages": [...],
-    "voice_patterns": "...",
-    "writing_prohibitions": "...",
-    "team_size": "Just me"
-  },
-  "summary": "1-2 sentence recap of the workspace",
-  "round": <current_round + 1>
-}
-"""
+    Reads the file on every call so edits take effect on the next request
+    without restarting the server. Raises RuntimeError if the file is missing.
+    """
+    path = _PROMPTS_DIR / f"{name}.md"
+    try:
+        return path.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        raise RuntimeError(
+            f"Prompt file not found: {path}\n"
+            f"Expected: backend/prompts/{name}.md"
+        )
 
 _ARCHETYPE_STAGE_DEFAULTS: dict[str, list[tuple[str, str]]] = {
     "content":    [("Research", "research"), ("Script / Draft", "script"), ("Production", "production")],
@@ -263,7 +173,7 @@ def _call_claude_conversation(
 ) -> FromConversationResponse:
     client = _build_client()
 
-    system = CONVERSATION_SYSTEM_PROMPT
+    system = _load_prompt("conversation")
     if round_num >= 3:
         system += (
             "\n\nFINAL ROUND: You MUST return needs_more=false and produce a complete "
@@ -385,7 +295,7 @@ def _call_claude(answers: dict) -> tuple[dict, list[dict], list[str]]:
     message = client.messages.create(
         model="claude-sonnet-4-6",
         max_tokens=4096,
-        system=SYSTEM_PROMPT,
+        system=_load_prompt("improve"),
         messages=[{"role": "user", "content": user_message}],
     )
 
@@ -424,6 +334,50 @@ def _call_claude(answers: dict) -> tuple[dict, list[dict], list[str]]:
             stage["slug"] = clean or "stage"
 
     return improved_answers, change_log, warnings
+
+
+def _call_claude_improve_skill(req: "ImproveSkillRequest") -> ImproveSkillResponse:
+    client = _build_client()
+
+    payload = {
+        "name": req.name,
+        "purpose": req.purpose,
+        "trigger": req.trigger,
+        "reads": req.reads,
+        "output": req.output,
+        "constraints": req.constraints,
+        "archetype": req.archetype,
+        "stages": req.stages,
+        "project_name": req.project_name,
+    }
+
+    message = client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1024,
+        system=_load_prompt("improve-skill"),
+        messages=[{"role": "user", "content": json.dumps(payload, ensure_ascii=False, indent=2)}],
+    )
+
+    raw = message.content[0].text.strip()
+
+    if raw.startswith("```"):
+        raw = re.sub(r"^```[a-z]*\n?", "", raw)
+        raw = re.sub(r"\n?```$", "", raw.strip())
+
+    try:
+        result = json.loads(raw)
+    except json.JSONDecodeError as exc:
+        raise ValueError(f"Claude returned non-JSON: {exc}") from exc
+
+    # Ensure required fields are present and lists are lists
+    return ImproveSkillResponse(
+        name=result.get("name") or req.name,
+        purpose=result.get("purpose") or req.purpose or "",
+        trigger=result.get("trigger") or req.trigger or "",
+        reads=result.get("reads") if isinstance(result.get("reads"), list) else (req.reads or ["CLAUDE.md"]),
+        output=result.get("output") or req.output or "",
+        constraints=result.get("constraints") if isinstance(result.get("constraints"), list) else (req.constraints or []),
+    )
 
 
 # ── ROUTES ─────────────────────────────────────────────────────────────────────
@@ -501,6 +455,32 @@ def from_conversation(req: FromConversationRequest):
 
     try:
         return _call_claude_conversation(api_messages, req.round)
+    except ValueError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+    except anthropic.APIStatusError as exc:
+        raise HTTPException(status_code=502, detail=f"Anthropic API error: {exc.message}") from exc
+    except anthropic.AuthenticationError as exc:
+        raise HTTPException(
+            status_code=502, detail="Invalid Anthropic API key. Check ANTHROPIC_API_KEY in backend/.env."
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=500, detail=f"Unexpected error: {exc}") from exc
+
+
+@app.post("/api/improve-skill", response_model=ImproveSkillResponse)
+def improve_skill(req: ImproveSkillRequest):
+    if not req.name.strip():
+        raise HTTPException(status_code=422, detail="name is required")
+
+    api_key = os.getenv("ANTHROPIC_API_KEY")
+    if not api_key:
+        raise HTTPException(
+            status_code=503,
+            detail="ANTHROPIC_API_KEY is not configured on the server. Add it to backend/.env and restart.",
+        )
+
+    try:
+        return _call_claude_improve_skill(req)
     except ValueError as exc:
         raise HTTPException(status_code=502, detail=str(exc)) from exc
     except anthropic.APIStatusError as exc:

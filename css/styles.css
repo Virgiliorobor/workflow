@@ -334,6 +334,18 @@ body {
 }
 .results-header h2 { font-size: 18px; font-weight: 700; flex: 1; }
 .results-actions { display: flex; gap: 10px; align-items: center; }
+.results-actions-divider { width: 1px; height: 20px; background: var(--border); margin: 0 2px; }
+.btn-home {
+  background: none;
+  border: none;
+  color: var(--text2);
+  font-size: 12px;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.btn-home:hover { background: var(--surface2); color: var(--text1); }
 
 .results-body {
   display: grid;

@@ -514,11 +514,13 @@ window.ICM.app = (() => {
     document.getElementById('results-title').textContent = project_name;
 
     // Ensure listeners are not duplicated on edit+regen cycles
-    const dlBtn = document.getElementById('btn-download');
-    const editBtn = document.getElementById('btn-edit');
-    dlBtn.replaceWith(dlBtn.cloneNode(true));
-    editBtn.replaceWith(editBtn.cloneNode(true));
+    [document.getElementById('btn-download'),
+     document.getElementById('btn-edit'),
+     document.getElementById('btn-home')].forEach(btn => {
+      if (btn) btn.replaceWith(btn.cloneNode(true));
+    });
     document.getElementById('btn-download').addEventListener('click', downloadZip);
+    document.getElementById('btn-home').addEventListener('click', () => showScreen('home'));
     document.getElementById('btn-edit').addEventListener('click', () => {
       state.questionIndex = 0;
       state.questions = buildQuestionList(state.answers.archetype);
@@ -791,6 +793,10 @@ window.ICM.app = (() => {
         </div>
         <div class="ai-modal-footer">
           <button class="btn-secondary" id="sc-cancel">Cancel</button>
+          <button class="btn-secondary" id="sc-improve" title="${state.backendAvailable ? 'Improve fields with AI' : 'Backend not running'}"\
+            ${state.backendAvailable ? '' : 'disabled'} style="display:flex;align-items:center;gap:6px">
+            ✦ Improve with AI
+          </button>
           <button class="btn-primary" id="sc-create">Create Skill File →</button>
         </div>
       </div>
@@ -800,6 +806,58 @@ window.ICM.app = (() => {
     overlay.querySelector('#sc-close').addEventListener('click', () => overlay.remove());
     overlay.querySelector('#sc-cancel').addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+
+    overlay.querySelector('#sc-improve').addEventListener('click', async () => {
+      const name = overlay.querySelector('#sc-name').value.trim();
+      if (!name) { showToast('Please enter a skill name first.', 'warning'); return; }
+
+      const improveBtn = overlay.querySelector('#sc-improve');
+      const originalLabel = improveBtn.innerHTML;
+      improveBtn.disabled = true;
+      improveBtn.innerHTML = '<span class="ai-spinner"></span> Improving…';
+
+      const readsRaw = overlay.querySelector('#sc-reads').value.trim();
+      const constraintsRaw = overlay.querySelector('#sc-constraints').value.trim();
+
+      const payload = {
+        name,
+        purpose:     overlay.querySelector('#sc-purpose').value.trim(),
+        trigger:     overlay.querySelector('#sc-trigger').value.trim(),
+        reads:       readsRaw ? readsRaw.split('\n').map(l => l.trim()).filter(Boolean) : [],
+        output:      overlay.querySelector('#sc-output').value.trim(),
+        constraints: constraintsRaw ? constraintsRaw.split('\n').map(l => l.trim()).filter(Boolean) : [],
+        archetype:   state.answers.archetype || 'custom',
+        stages:      (state.answers.stages || []).map(s => ({ label: s.label, slug: s.slug })),
+        project_name: state.answers.project_name || '',
+      };
+
+      try {
+        const BACKEND = (window.ICM_BACKEND_URL || 'http://localhost:8000').replace(/\/$/, '');
+        const res = await fetch(`${BACKEND}/api/improve-skill`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({ detail: res.statusText }));
+          throw new Error(err.detail || res.statusText);
+        }
+        const data = await res.json();
+
+        overlay.querySelector('#sc-purpose').value   = data.purpose || '';
+        overlay.querySelector('#sc-trigger').value   = data.trigger || '';
+        overlay.querySelector('#sc-reads').value     = (data.reads || []).join('\n');
+        overlay.querySelector('#sc-output').value    = data.output || '';
+        overlay.querySelector('#sc-constraints').value = (data.constraints || []).join('\n');
+
+        showToast('Skill fields improved with AI. Review and create.', 'success');
+      } catch (err) {
+        showToast(`AI improve failed: ${err.message}`, 'error');
+      } finally {
+        improveBtn.disabled = false;
+        improveBtn.innerHTML = originalLabel;
+      }
+    });
 
     overlay.querySelector('#sc-create').addEventListener('click', () => {
       const name = overlay.querySelector('#sc-name').value.trim();
