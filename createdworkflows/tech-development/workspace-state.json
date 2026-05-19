@@ -1,0 +1,64 @@
+{
+  "answers": {
+    "project_name": "tech-development",
+    "description": "Workspace for building customs compliance tools, legal practice automation, and personal workflow utilities — from initial problem definition through a working, verified tool. Covers Python scrapers, React artifacts, full-stack SaaS, and document generation.",
+    "archetype": "developer",
+    "app_description": "A range of tools: customs/trade compliance automation (SAT portal scrapers, CBP ruling extractors, HTS code normalizers, IMMEX document generators), AduanIA client-facing products (HTS Tracker SaaS on Next.js/FastAPI/BigQuery), and personal workflow utilities. Builder is a customs attorney, not a trained developer — tools are built with AI assistance in Cursor and Claude.ai.",
+    "tech_stack": "Python (automation, scraping, Gradio UI), JavaScript/Node.js (document generation, docx), React/JSX (Claude artifacts, Recharts, Tailwind), Next.js TypeScript + FastAPI + Firebase Auth + BigQuery (full-stack SaaS), Selenium/Firefox headless (SAT/VUCEM portals), Anthropic API (claude-sonnet-4-20250514), Gradio (internal tool UIs). Primary IDE: Cursor with Claude Code. pip install --break-system-packages, npm install -g.",
+    "work_modes": [
+      "Planning / spec writing",
+      "Writing code",
+      "Testing",
+      "Documentation",
+      "Architecture design"
+    ],
+    "code_standards": "Python: batch processing with 300ms minimum delays against government APIs, incremental saves after each batch, never buffer-and-write-once. HTS codes: normalize both four-dot (8471.70.40.35) and three-dot (8471.70.4035) formats consistently. BigQuery: table-valued functions require UNNEST() wrapping, scalar functions called directly. Word output: Arial 11pt body, US Letter 1-inch margins, table borders SINGLE size 1 color CCCCCC. Output always to timestamped subdirectory. Anthropic API calls via fetch to api.anthropic.com/v1/messages, no API key in code. React artifacts: all state in useState, no localStorage, default export, Tailwind base classes only.",
+    "rejection_criteria": "Lists of possible causes instead of one fix. Code that buffers all results and writes once at the end. Rewrites of the whole tool when only one broken piece needs correcting. HTS output that doesn't normalize notation format. BigQuery queries that call table-valued functions without UNNEST(). React artifacts using localStorage or sessionStorage. Word documents with color fills, emojis, or decorative elements. Any explanation of what the code does line-by-line when it wasn't asked for. If it is generic and not doing what we inteded",
+    "stages": [
+      {
+        "id": "01",
+        "slug": "define",
+        "label": "Define",
+        "description": "Identify the exact manual process being replaced: what is the input, the output, and the data source — answer all three before writing any code.",
+        "task": "Define the tool for [problem or process]",
+        "note": "Must nail input/output/data source before moving forward. If data source requires auth (SAT e.firma, VUCEM), flag it here."
+      },
+      {
+        "id": "02",
+        "slug": "adjust-and-aim",
+        "label": "Adjust & Aim",
+        "description": "Choose the right form factor and stack for this specific tool — scraper vs. API client vs. artifact vs. full-stack — and sketch the architecture.",
+        "task": "Adjust and aim the approach for [tool name]",
+        "note": "Key decision point: script vs. Gradio UI vs. React artifact vs. full Next.js/FastAPI project. Wrong choice here costs the most time."
+      },
+      {
+        "id": "03",
+        "slug": "build-and-volume",
+        "label": "Build & Volume",
+        "description": "Build the core function on one record first, verify manually, then add batch processing, delays, incremental saves, error logging, and progress indicators.",
+        "task": "Build and add volume handling for [tool name]",
+        "note": "Core rule: one unit working correctly before scaling. Gradio theme errors and BigQuery UNNEST issues surface here — check known issues before diagnosing fresh."
+      },
+      {
+        "id": "04",
+        "slug": "verify",
+        "label": "Verify",
+        "description": "Run the complete tool against real data, check output format precisely, confirm edge cases (HTS notation, ruling number prefixes, document formatting), and document the result.",
+        "task": "Verify [tool name] end to end",
+        "note": "Customs tools: verify HTS notation normalization, ruling number prefix patterns, IMMEX document formatting. Full-stack: confirm BigQuery function types and Firebase auth flow."
+      },
+      {
+        "id": "05",
+        "slug": "document",
+        "label": "Stage 5",
+        "description": "Generate a markdown file capturing development details: tool purpose, inputs/outputs, stack decisions, known issues, and final verified behavior.",
+        "task": "Document [tool name] — generate the dev summary markdown file.",
+        "note": "Include stack choices made in Adjust & Aim, any edge cases resolved in Verify, and the exact output format so the tool can be reproduced or handed off."
+      }
+    ],
+    "voice_patterns": "Direct Spanglish communication mixing English and Spanish naturally. Terse, action-oriented — states what he needs without preamble. High precision on domain terms (tariff fractions, e.firma, IMMEX, AEO) used without explanation. Responds well to single-fix answers; loses patience with hedged, multi-option responses. Expects Claude to pick the right path, not list alternatives.",
+    "writing_prohibitions": "No filler phrases or preamble before the actual answer. No lists of possible causes — one root cause, one fix. No line-by-line explanation of code unless asked. No hedging language (might, could, possibly). No restatement of the problem before answering it.",
+    "team_size": "Just me"
+  },
+  "overrides": {}
+}
