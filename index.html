@@ -12,6 +12,16 @@
   <!-- CDN deps -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+  <!-- Local dev: backend on 8787 when port 8000 is blocked (Windows WinError 10013). Remove this block if your API runs on 8000. Production: set window.ICM_BACKEND_URL via host snippet instead. -->
+  <script>
+    (function () {
+      if (window.ICM_BACKEND_URL) return;
+      var h = location.hostname;
+      if (h === 'localhost' || h === '127.0.0.1') {
+        window.ICM_BACKEND_URL = 'http://localhost:8787';
+      }
+    })();
+  </script>
 </head>
 <body>
 
@@ -56,6 +66,7 @@
       <span class="drop-icon" aria-hidden="true"><span class="tree-icon-dir tree-icon-dir-lg"></span></span>
       Drag your <strong>workspace-state.json</strong> here, or click to browse
     </div>
+    <p class="reopen-hint">That file only stores your <strong>answers</strong> (and any edits you saved) so the builder can <strong>regenerate</strong> the tree. The <strong>complete</strong> workspace — every <code>.md</code> folder and file — is the <strong>.zip</strong> from the results screen after you generate. Use the copy inside the zip at <code>&lt;project&gt;/workspace-state.json</code> for re-import.</p>
     <input type="file" id="reopen-input" accept=".json">
   </div>
 
@@ -131,7 +142,7 @@
     <button class="btn-ghost" id="chat-back-btn">← Back</button>
     <div class="chat-header-center">
       <span class="chat-header-title">◇ Build with AI conversation</span>
-      <span class="chat-header-sub">Describe your project — Claude will pre-fill the wizard for you</span>
+      <span class="chat-header-sub">Describe your project — you can attach text documents to include with your message. Claude will pre-fill the wizard for you.</span>
     </div>
   </div>
 
@@ -139,6 +150,14 @@
 
   <div class="chat-footer">
     <div class="chat-round-indicator" id="chat-round-indicator"></div>
+    <div class="chat-attachments" id="chat-attachments" aria-live="polite"></div>
+    <div class="chat-compose-tools">
+      <button type="button" class="btn-secondary chat-attach-btn" id="chat-attach-btn" title="Attach plain-text documents">
+        + Attach files
+      </button>
+      <span class="chat-attach-hint">Text-based: .txt, .md, .json, .csv, .yaml, .html … (included in your next send; not PDF/DOCX yet)</span>
+      <input type="file" id="chat-file-input" class="visually-hidden" multiple accept=".txt,.md,.markdown,.csv,.json,.log,.yaml,.yml,.xml,.html,.htm,.tsv,text/plain,text/markdown,text/csv,application/json">
+    </div>
     <div class="chat-input-row">
       <textarea
         class="chat-input"
@@ -241,12 +260,12 @@ document.addEventListener('click', e => {
 });
 </script>
 
-<!-- App scripts -->
-<script src="js/questions.js"></script>
-<script src="js/generator.js"></script>
-<script src="js/diagram.js"></script>
-<script src="js/app.js"></script>
-<script src="js/chat.js"></script>
+<!-- App scripts — ?v= bumps cache when debugging (change after edits) -->
+<script src="js/questions.js?v=20260513"></script>
+<script src="js/generator.js?v=20260513"></script>
+<script src="js/diagram.js?v=20260513"></script>
+<script src="js/app.js?v=20260513"></script>
+<script src="js/chat.js?v=20260513"></script>
 
 
 </body>

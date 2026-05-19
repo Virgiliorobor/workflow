@@ -9,7 +9,7 @@ It describes the full system as it currently stands — architecture, every modu
 
 A two-part system:
 
-1. **Static web app** (`index.html` + `js/` + `css/`) — a guided wizard that asks diagnostic questions and generates a fully populated AI workspace folder structure based on the **Interpretable Context Methodology (ICM)**.
+1. **Static web app** (`index.html` + `js/` + `css/`) — a guided wizard that asks diagnostic questions and generates a fully populated AI workspace folder structure based on the **Interpretable Context Methodology (ICM)**. Supports **single workspace** (classic one tree) or **multi-agent hub**: `master/` coordinator + `agents/<slug>/` specialist trees, chosen in the wizard (`workspace_layout`).
 2. **Python backend** (`backend/app.py`) — a FastAPI server that calls Claude to improve the wizard spec. Optional — the frontend works fully without it.
 
 **ICM** is a system developed by Eduba / Clief Notes for structuring AI workflows using layered markdown files (CLAUDE.md, CONTEXT.md, stage contracts, _config/ references, skill starters).
@@ -84,10 +84,11 @@ Workflow/
 
 **Exports via `window.ICM`:**
 - `ARCHETYPES` — array of 5 objects: `{ id, label, icon, description, stageDefaults, stageLabels }`
-- `UNIVERSAL_QUESTIONS` — 2 questions for every archetype: `project_name`, `description`
+- `UNIVERSAL_QUESTIONS` — 3 questions for every archetype: `project_name`, `description`, `workspace_layout` (`single` \| `multi`)
 - `ARCHETYPE_QUESTIONS` — keyed by archetype id, 5–6 questions each
 - `VOICE_QUESTIONS` — 3 questions after archetype questions: `voice_patterns`, `writing_prohibitions`, `team_size`
 - `STAGE_CONFIG_QUESTION` — the stage builder question (type: `stage_builder`)
+- `AGENTS_CONFIG_QUESTION` — shown only when `workspace_layout === 'multi'` (type: `agents_builder`): 2–6 specialist agents with slug, description, routing trigger
 
 **Question object shape:**
 ```js
@@ -123,6 +124,12 @@ Workflow/
 
 **Exports via `window.ICM.generator`:**
 - `generateAllFiles(answers)` → returns `{ 'project/path/file.md': 'content string', ... }`
+  - If `answers.workspace_layout === 'multi'` and `answers.agents` has at least 2 entries → `generateMultiWorkspaceFiles` (hub `README.md`, **`handoff.md`**, **`extras/`**, `master/…`, `agents/<slug>/…`, no root `CLAUDE.md`).
+  - Otherwise → `generateSingleWorkspaceFiles` (classic layout including root `extras/`).
+- `generateCONTEXTmd(answers, ctxOpts?)` — optional `ctxOpts.stagePathPrefix` (e.g. `master/`) and `titleOverride` for hub CONTEXT.
+- `buildRoutingTable(stages, pathPrefix?)` — optional `pathPrefix` (e.g. `master`) for coordinator internal paths.
+- `buildAgentRoutingTable(agents)` — master routing table rows pointing at `agents/<slug>/`.
+- `generateExtrasReadme(answers, scope, agent?)` — `extras/README.md` body for `single` | `hub` | `master` | `agent` scopes.
 
 **Files generated (always):**
 
@@ -139,11 +146,14 @@ Workflow/
 | `workspace-state.json` | — | Base answers only (overrides are added by app.js in ZIP export) |
 | `skill-starters/README.md` | L5 | Index of stage skill files |
 | `skill-starters/NN_slug.md` | L5 | One skill template per stage |
+| `extras/README.md` + `extras/.gitkeep` | — | Supporting material outside stages (briefs, dumps); see `extras/README.md` |
+
+**When `workspace_layout === 'multi'`:** there is **no** root `CLAUDE.md` / `CONTEXT.md`. The root has `README.md`, **`handoff.md`**, **`extras/`** (hub-wide supporting files), and `workspace-state.json` only. The same layer pattern as above is generated under **`master/`** (coordinator) and **repeated under each `agents/<slug>/`** (specialists), including `_config/`, **`extras/`**, and `skill-starters/` per tree.
 
 **Extra files for `freelancer` archetype only:**
 - `_config/client-brief.md`, `_config/engagement-terms.md`, `_config/scope-agreement.md`, `_references/README.md`
 
-**Routing table:** `buildRoutingTable(stages)` uses `stage.task` if set; falls back to `"Work in <label>"`. Uses `stage.note` for the Notes column.
+**Routing table:** `buildRoutingTable(stages, pathPrefix?)` uses `stage.task` if set; falls back to `"Work in <label>"`. Uses `stage.note` for the Notes column. Optional `pathPrefix` (e.g. `master`) prefixes the "Go to" path for coordinator-internal routing.
 
 **Stage defaults:** `defaultProcess(stage, answers)` has pre-written process steps for slugs: `research`, `script`, `production`, `discovery`, `build`, `review`, `handoff`, `planning`, `intake`, `process`, `deliver`. Falls back to 4 generic steps.
 
@@ -206,13 +216,14 @@ answers
 - Re-open flow in `loadStateFile()` detects v2 by checking `loaded.answers.project_name`. v1 (answers-only) files are still supported.
 - The ZIP export always writes v2 format — `downloadZip()` overrides the `workspace-state.json` entry in the final files before zipping.
 
-**Question pipeline:**
+**Question pipeline (rebuilt on every `renderQuestion()` via `buildQuestionList()`):**
 ```
-UNIVERSAL_QUESTIONS         (2 — always)
+UNIVERSAL_QUESTIONS         (3 — project, description, workspace_layout)
 + ARCHETYPE_QUESTIONS[id]   (5–6 depending on archetype)
 + STAGE_CONFIG_QUESTION     (1 — stage builder)
++ AGENTS_CONFIG_QUESTION    (0 or 1 — only when workspace_layout === 'multi')
 + VOICE_QUESTIONS           (3 — always)
-= 11–12 questions total
+= 12–14 questions total (multi) or 11–12 (single)
 ```
 
 **Stage builder fields** (rendered as a grid inside `stage_builder` question):
@@ -274,14 +285,15 @@ UNIVERSAL_QUESTIONS         (2 — always)
 **Exports via `window.ICM.chat`:**
 - `show()` — switches to `screen-chat`, resets message history, displays hardcoded greeting
 - `back()` — switches back to home without saving anything
-- `send(text)` — appends user message, calls `POST /api/from-conversation`, handles response
+- `send(text)` — builds the user turn (typed text plus optional **text file attachments** read in the browser), appends to `messages`, calls `POST /api/from-conversation`. Attachments are inlined into `content` as markdown sections; the backend schema is unchanged.
 - `applyAnswers(answers)` — delegates to `window.ICM.app.enterWizardWithAnswers(answers)`
-- `init()` — wires the `#chat-send-btn`, `#chat-input` (Enter key), and `#chat-back-btn` DOM listeners
+- `init()` — wires send, Enter key, back, **+ Attach files** (`#chat-attach-btn` / `#chat-file-input`), and chip remove clicks on `#chat-attachments`
 
 **Conversation state (local, not persisted):**
 ```js
 messages = [];       // [{ role: 'user'|'assistant', content: string }, ...]
-                     // tracks turns sent to/from the API (greeting not included)
+                     // user content may include long inlined attachment excerpts
+pendingAttachments = [];  // { name, text }[] — cleared after each successful send
 currentRound = 0;    // incremented each round-trip; capped at MAX_ROUNDS (3)
 isSending = false;   // guard against double-submit
 ```
@@ -301,6 +313,8 @@ isSending = false;   // guard against double-submit
 - `render(containerId, answers)` — builds and attaches D3 SVG
 - `destroy(containerId)` — stops simulation, removes SVG and tooltips
 
+When `answers.workspace_layout === 'multi'` and `agents` has ≥2 entries, `buildGraph` uses **`buildMultiHubGraph`** (master L0/L1 nodes, dispatch links to each `agents/<slug>/CLAUDE.md`, root `README.md` and **`handoff.md`** for Week 4 cross-folder protocol). Otherwise the classic single-tree graph is used.
+
 **Layer colors (also in CSS `--l0` through `--l5`):**
 
 | Layer | Color | CSS var | Represents |
@@ -312,7 +326,7 @@ isSending = false;   // guard against double-submit
 | L4 | `#6b7280` gray | `--l4` | output/ directories |
 | L5 | `#10b981` green | `--l5` | skill-starters/ |
 
-**Diagram nodes:** CLAUDE.md (L0) → CONTEXT.md (L1) → stage folders (L2) + output/ (L4) + _config/ files (L3) + skill-starters/ (L5). Clicking a node with a `fileKey` calls `window.ICM.app.highlightFile(fileKey)`.
+**Diagram nodes (single mode):** CLAUDE.md (L0) → CONTEXT.md (L1) → stage folders (L2) + output/ (L4) + _config/ files (L3) + skill-starters/ (L5). **Multi mode:** simplified hub: `master/CLAUDE.md` → `master/CONTEXT.md` → each specialist `agents/<slug>/CLAUDE.md`, plus root `README.md`. Clicking a node with a `fileKey` calls `window.ICM.app.highlightFile(fileKey)`.
 
 **Timing:** renders inside `requestAnimationFrame` on tab click to avoid zero-width container problem.
 
@@ -481,7 +495,7 @@ python app.py
 | **MCP server questions** | The wizard does not yet ask which MCP servers the user uses. Would feed into skill starters. |
 | **Protected blocks** | `<!-- ICM:PROTECT:start/end -->` markers that merge into regenerated files instead of the user losing their edits. Phase 2 of the override system. |
 | **Import from existing folder** | Parse an existing workspace folder back into answers. Re-open currently only works from `workspace-state.json`. |
-| **Multi-workspace mode** | Generate multiple workspaces inside a larger project (community + production + writing room pattern). One workspace at a time currently. |
+| **Per-agent stage pipelines** | Multi mode copies the **same** stage list into `master/` and every `agents/<slug>/`. Different stage sets per agent are not yet configurable in the wizard. |
 | **Skill import from GitHub URL** | File upload works. Fetching skill files from a public repo URL requires a backend endpoint (`/api/skill-from-repo`). |
 | **AI skill generator** | Backend endpoint `POST /api/skill-from-brief` — describe a task in plain language, get a skill file back. |
 | **Streaming chat responses** | `/api/from-conversation` is currently one-shot per round. Streaming would make the chat feel faster for long responses. |

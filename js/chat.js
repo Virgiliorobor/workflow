@@ -5,8 +5,19 @@ window.ICM = window.ICM || {};
 
 window.ICM.chat = (() => {
 
-  const BACKEND_URL = (window.ICM_BACKEND_URL || 'http://localhost:8000').replace(/\/$/, '');
+  const BACKEND_URL = (typeof window.ICM_resolveBackendUrl === 'function'
+    ? window.ICM_resolveBackendUrl()
+    : (window.ICM_BACKEND_URL || 'http://localhost:8000').replace(/\/$/, ''));
   const MAX_ROUNDS = 3;
+  const MAX_ATTACH_FILES = 8;
+  const MAX_FILE_BYTES = 4 * 1024 * 1024;
+  /** Total characters for message + all attachments (rough guard for API limits). */
+  const MAX_MESSAGE_CHARS = 95000;
+  const MAX_PER_FILE_CHARS = 38000;
+
+  const TEXT_EXTENSIONS = new Set([
+    '.txt', '.md', '.markdown', '.csv', '.tsv', '.json', '.log', '.yaml', '.yml', '.xml', '.html', '.htm', '.svg', '.css', '.js', '.ts', '.tsx', '.jsx', '.env', '.sh', '.ps1', '.py', '.sql'
+  ]);
 
   // Messages sent to/from the API (not including the hardcoded greeting)
   // Always starts with a user message; alternates user/assistant.
@@ -15,6 +26,153 @@ window.ICM.chat = (() => {
   let isSending = false;
   /** Increments per assistant bubble for terminal-style labels */
   let assistantBubbleCount = 0;
+  /** Pending files shown as chips; merged into the next user message as text. */
+  let pendingAttachments = [];
+
+  function toast(msg, variant) {
+    if (window.ICM.app && window.ICM.app.showToast) {
+      window.ICM.app.showToast(msg, variant || 'info');
+    }
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function isAllowedFile(file) {
+    const name = file.name.toLowerCase();
+    const dot = name.lastIndexOf('.');
+    const ext = dot >= 0 ? name.slice(dot) : '';
+    if (TEXT_EXTENSIONS.has(ext)) return true;
+    const t = (file.type || '').toLowerCase();
+    if (t.startsWith('text/')) return true;
+    if (t === 'application/json' || t === 'application/xml') return true;
+    return false;
+  }
+
+  function readFileAsText(file) {
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => resolve(String(fr.result != null ? fr.result : ''));
+      fr.onerror = () => reject(new Error('Could not read file'));
+      fr.readAsText(file, 'UTF-8');
+    });
+  }
+
+  function renderAttachmentChips() {
+    const el = document.getElementById('chat-attachments');
+    if (!el) return;
+    if (!pendingAttachments.length) {
+      el.innerHTML = '';
+      return;
+    }
+    el.innerHTML = pendingAttachments
+      .map(
+        (a, i) =>
+          `<span class="chat-attach-chip"><span>${escapeHtml(a.name)}</span><button type="button" class="chat-attach-remove" data-attach-index="${i}" aria-label="Remove ${escapeHtml(a.name)}">×</button></span>`
+      )
+      .join('');
+  }
+
+  async function addFilesFromList(fileList) {
+    const files = [...fileList];
+    for (const file of files) {
+      if (pendingAttachments.length >= MAX_ATTACH_FILES) {
+        toast(`Maximum ${MAX_ATTACH_FILES} files per send.`, 'warning');
+        break;
+      }
+      if (!isAllowedFile(file)) {
+        toast(`Skipped "${file.name}" — use text-based files (.txt, .md, .json, …). PDF and Word need a future server step.`, 'warning');
+        continue;
+      }
+      if (file.size > MAX_FILE_BYTES) {
+        toast(`"${file.name}" is too large (max 4 MB per file).`, 'warning');
+        continue;
+      }
+      try {
+        const text = await readFileAsText(file);
+        pendingAttachments.push({ name: file.name, text });
+      } catch {
+        toast(`Could not read "${file.name}".`, 'error');
+      }
+    }
+    renderAttachmentChips();
+  }
+
+  /** Full string sent to the API; may include fenced attachment bodies. */
+  function buildUserPayload(userText) {
+    const trimmed = (userText || '').trim();
+    let body =
+      trimmed ||
+      '(The user sent only attached files below — infer their project/workflow from the documents and ask a short follow-up if anything critical is missing.)';
+
+    if (pendingAttachments.length === 0) {
+      if (body.length > MAX_MESSAGE_CHARS) {
+        toast('Message is too long. Shorten your text before sending.', 'warning');
+        return null;
+      }
+      return body;
+    }
+
+    body += '\n\n--- Attached documents (plain text) ---\n';
+    for (const a of pendingAttachments) {
+      let chunk = a.text;
+      if (chunk.length > MAX_PER_FILE_CHARS) {
+        chunk =
+          chunk.slice(0, MAX_PER_FILE_CHARS) +
+          '\n… [truncated: file exceeds per-send limit; split or send a shorter excerpt.]';
+      }
+      body += `\n### File: ${a.name}\n\`\`\`\n${chunk}\n\`\`\`\n`;
+      if (body.length > MAX_MESSAGE_CHARS) {
+        toast('Combined message + attachments exceeds the safe limit. Remove a file or shorten text.', 'warning');
+        return null;
+      }
+    }
+    return body;
+  }
+
+  /** Shorter text shown in the user bubble (not the full attachment dump). */
+  function buildUserBubblePreview(userText) {
+    const trimmed = (userText || '').trim();
+    const names = pendingAttachments.map(a => a.name);
+    if (trimmed && names.length) {
+      return `${trimmed}\n\n(Attached: ${names.join(', ')})`;
+    }
+    if (trimmed) return trimmed;
+    if (names.length) return '(Attached files only)\n' + names.map(n => `• ${n}`).join('\n');
+    return '';
+  }
+
+  function wireAttachmentUi() {
+    const attachBtn = document.getElementById('chat-attach-btn');
+    const fileInput = document.getElementById('chat-file-input');
+    const attachHost = document.getElementById('chat-attachments');
+
+    if (attachBtn && fileInput) {
+      attachBtn.addEventListener('click', () => fileInput.click());
+      fileInput.addEventListener('change', e => {
+        const fl = e.target.files;
+        if (fl && fl.length) addFilesFromList(fl);
+        e.target.value = '';
+      });
+    }
+
+    if (attachHost) {
+      attachHost.addEventListener('click', e => {
+        const btn = e.target.closest('.chat-attach-remove');
+        if (!btn) return;
+        const i = parseInt(btn.getAttribute('data-attach-index'), 10);
+        if (!Number.isNaN(i)) {
+          pendingAttachments.splice(i, 1);
+          renderAttachmentChips();
+        }
+      });
+    }
+  }
 
   // ── PUBLIC: show ───────────────────────────────────────────────────────────
 
@@ -23,6 +181,8 @@ window.ICM.chat = (() => {
     currentRound = 0;
     isSending = false;
     assistantBubbleCount = 0;
+    pendingAttachments = [];
+    renderAttachmentChips();
 
     // Reset UI
     const msgEl = document.getElementById('chat-messages');
@@ -36,8 +196,9 @@ window.ICM.chat = (() => {
     // Show greeting (not added to messages array — it's a client-side prompt)
     displayBubble('assistant',
       "Tell me about your project. What are you building or working on?\n\n" +
-      "A quick description of the workflow and what you want Claude to help you with is all you need to get started. " +
-      "I'll ask a couple of follow-up questions if needed, then pre-fill the wizard for you."
+      "You can use **+ Attach files** to include .txt, .md, .json, specs, or other **text-based** documents with your message — they are sent to Claude as part of your turn (PDF/Word are not supported in the browser yet).\n\n" +
+      "If you want a **multi-agent hub** (a `master/` coordinator plus separate `agents/<slug>/` workspaces), say so or describe distinct specialist areas — the AI will try to infer **stages** and **agent routing** from your brief.\n\n" +
+      "A quick description plus any relevant files is enough to get started. I'll ask follow-up questions if needed, then pre-fill the wizard for you."
     );
 
     // Focus the input
@@ -54,13 +215,22 @@ window.ICM.chat = (() => {
 
   async function send(text) {
     text = (text || '').trim();
-    if (!text || isSending) return;
+    if ((!text && pendingAttachments.length === 0) || isSending) return;
+
+    const payload = buildUserPayload(text);
+    if (payload == null) return;
+
+    const bubblePreview = buildUserBubblePreview(text);
+    const pendingSnapshot = pendingAttachments.map(a => ({ name: a.name, text: a.text }));
 
     isSending = true;
 
-    // Add user turn to conversation
-    messages.push({ role: 'user', content: text });
-    displayBubble('user', text);
+    // Add user turn to conversation (full payload for the model)
+    messages.push({ role: 'user', content: payload });
+    displayBubble('user', bubblePreview);
+
+    pendingAttachments = [];
+    renderAttachmentChips();
 
     const input = document.getElementById('chat-input');
     if (input) input.value = '';
@@ -109,6 +279,8 @@ window.ICM.chat = (() => {
       );
       // Pop the failed user message so the user can retry
       messages.pop();
+      pendingAttachments = pendingSnapshot;
+      renderAttachmentChips();
       updateSendButton(false);
     } finally {
       isSending = false;
@@ -136,8 +308,8 @@ window.ICM.chat = (() => {
 
     if (sendBtn) {
       sendBtn.addEventListener('click', () => {
-        const val = input?.value?.trim();
-        if (val) send(val);
+        const val = input?.value?.trim() || '';
+        if (val || pendingAttachments.length) send(val);
       });
     }
 
@@ -146,10 +318,12 @@ window.ICM.chat = (() => {
         if (e.key === 'Enter' && !e.shiftKey) {
           e.preventDefault();
           const val = input.value.trim();
-          if (val) send(val);
+          if (val || pendingAttachments.length) send(val);
         }
       });
     }
+
+    wireAttachmentUi();
   }
 
   // ── INTERNAL HELPERS ───────────────────────────────────────────────────────

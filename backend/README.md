@@ -18,8 +18,20 @@ Copy-Item .env.example .env
 # Edit .env and add your ANTHROPIC_API_KEY
 
 python app.py
-# Server starts on http://localhost:8000
+# Server starts on http://localhost:8000 (or the port set in .env as PORT=...)
 ```
+
+### Windows: `WinError 10013` when starting the server
+
+That usually means **port 8000 cannot be bound** (reserved range, VPN, Hyper-V, or another app).
+
+1. In **`backend/.env`**, set a different port, for example: `PORT=8787`
+2. Restart `python app.py` — you should see `http://localhost:8787`
+3. In the browser (same origin as your static site), open the dev console once and run:
+   `localStorage.setItem('ICM_BACKEND_URL', 'http://localhost:8787'); location.reload()`  
+   Or set `window.ICM_BACKEND_URL` in `index.html` before the app scripts (see root `README.md` / Netlify snippets).
+
+Alternatively check what holds 8000: `netstat -ano | findstr :8000`
 
 ## Endpoints
 

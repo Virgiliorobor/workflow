@@ -10,6 +10,7 @@ You will receive a JSON object representing the user's answers to a workspace wi
 6. writing_prohibitions — if empty, add 3 sensible defaults.
 7. stage.slug — normalize to lowercase-hyphenated, max 24 chars; only change if currently invalid or empty.
 8. Preserve all other fields exactly as they are — do NOT change archetype, formats, audience, project_name, team_size, or any field not listed above.
+9. If workspace_layout is "multi" and an "agents" array is present: improve agent descriptions and routing **task** triggers when vague (grounded in the existing spec); normalize each agent.slug like stage slugs. Do not drop agents, change their count, or switch to single unless the data is internally inconsistent (e.g. fewer than two agents).
 
 Return a JSON object with two keys:
 - "improvedAnswers": the full answers object with your improvements applied.

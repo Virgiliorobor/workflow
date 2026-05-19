@@ -208,6 +208,17 @@ window.ICM.diagram = {
   },
 
   buildGraph(answers, width, height) {
+    const layout = answers.workspace_layout || 'single';
+    const gen = window.ICM && window.ICM.generator;
+    const multiCount =
+      gen && typeof gen.sanitizeAgents === 'function'
+        ? gen.sanitizeAgents(answers).length
+        : Array.isArray(answers.agents)
+          ? answers.agents.filter(a => a && typeof a === 'object' && a.slug).length
+          : 0;
+    if (layout === 'multi' && multiCount >= 2) {
+      return this.buildMultiHubGraph(answers, width, height);
+    }
     const { project_name, stages, archetype } = answers;
     const cx = width / 2;
     const cy = height / 2;
@@ -403,6 +414,144 @@ window.ICM.diagram = {
         dashed: true,
         distance: 210
       });
+    });
+
+    return { nodes, links };
+  },
+
+  buildMultiHubGraph(answers, width, height) {
+    const { project_name } = answers;
+    const gen = window.ICM && window.ICM.generator;
+    const agents =
+      gen && typeof gen.sanitizeAgents === 'function'
+        ? gen.sanitizeAgents(answers).filter(
+            a => a && typeof a === 'object' && String(a.slug || '').trim() !== ''
+          )
+        : (Array.isArray(answers.agents) ? answers.agents : []).filter(
+            a => a && typeof a === 'object' && a.slug
+          );
+    const cx = width / 2;
+    const cy = height / 2;
+    const nodes = [];
+    const links = [];
+
+    nodes.push({
+      id: 'master_claude',
+      label: 'master/CLAUDE.md',
+      sublabel: 'Coordinator L0',
+      layer: 'L0',
+      icon: '⌂',
+      iconSize: 15,
+      radius: 30,
+      x: cx,
+      y: cy - 120,
+      fileKey: `${project_name}/master/CLAUDE.md`,
+      description: 'Master hub map. Route to the right agent; run coordinator stages here.'
+    });
+
+    nodes.push({
+      id: 'master_ctx',
+      label: 'master/CONTEXT.md',
+      sublabel: 'Hub router',
+      layer: 'L1',
+      icon: '⇒',
+      iconSize: 14,
+      radius: 24,
+      x: cx,
+      y: cy - 40,
+      fileKey: `${project_name}/master/CONTEXT.md`,
+      description: 'Master workflow + specialist agent table.'
+    });
+
+    links.push({
+      source: 'master_claude',
+      target: 'master_ctx',
+      label: 'routes',
+      color: '#465d81',
+      width: 2,
+      distance: 100
+    });
+
+    const n = agents.length;
+    if (n < 1) {
+      return { nodes, links };
+    }
+    const spread = Math.min(width * 0.75, Math.max(360, n * 140));
+    const startX = cx - spread / 2 + spread / (n * 2);
+
+    agents.forEach((agent, i) => {
+      if (!agent || typeof agent !== 'object' || !agent.slug) return;
+      const id = `agent_${i}`;
+      const ax = startX + (spread / n) * i;
+      const ay = cy + 90;
+      nodes.push({
+        id,
+        label: agent.label,
+        sublabel: `agents/${agent.slug}/`,
+        layer: 'L2',
+        icon: String(i + 1),
+        iconSize: 13,
+        radius: 26,
+        x: ax,
+        y: ay,
+        fileKey: `${project_name}/agents/${agent.slug}/CLAUDE.md`,
+        description: agent.description || agent.task || `Specialist workspace: ${agent.label}.`
+      });
+      links.push({
+        source: 'master_ctx',
+        target: id,
+        label: 'dispatch',
+        color: '#5f759b',
+        width: 1.5,
+        distance: 140
+      });
+    });
+
+    nodes.push({
+      id: 'hub_readme',
+      label: 'README.md',
+      sublabel: 'Hub overview',
+      layer: 'L1',
+      icon: 'R',
+      iconSize: 12,
+      radius: 18,
+      x: cx - 120,
+      y: cy + 200,
+      fileKey: `${project_name}/README.md`,
+      description: 'Explains the multi-agent layout at the project root.'
+    });
+
+    nodes.push({
+      id: 'hub_handoff',
+      label: 'handoff.md',
+      sublabel: 'Week 4 — cross-folder',
+      layer: 'L1',
+      icon: 'H',
+      iconSize: 12,
+      radius: 18,
+      x: cx + 120,
+      y: cy + 200,
+      fileKey: `${project_name}/handoff.md`,
+      description: 'Contract for passing work between master/ and agents/ (and back).'
+    });
+
+    links.push({
+      source: 'master_claude',
+      target: 'hub_readme',
+      color: '#8f6f6e',
+      width: 1,
+      dashed: true,
+      distance: 200
+    });
+
+    links.push({
+      source: 'master_ctx',
+      target: 'hub_handoff',
+      label: 'Week 4',
+      color: '#047857',
+      width: 1.2,
+      dashed: true,
+      distance: 180
     });
 
     return { nodes, links };

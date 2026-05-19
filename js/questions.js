@@ -66,6 +66,20 @@ const UNIVERSAL_QUESTIONS = [
       title: 'The identity statement',
       body: 'This goes into your CLAUDE.md — the file Claude reads first on every task. Think of it as the floor plan of a building. Before a visitor knows where anything is, they read the floor plan. Your description is the first line of that floor plan. It orients the AI immediately, without it having to read every file.'
     }
+  },
+  {
+    id: 'workspace_layout',
+    type: 'radio',
+    label: 'How should this download be structured?',
+    options: ['single', 'multi'],
+    optionLabels: {
+      single: 'Single workspace — one ICM folder tree (classic)',
+      multi: 'Multi-agent hub — a coordinator (master/) plus specialist workspaces (agents/…)'
+    },
+    teaching: {
+      title: 'One tree vs. many coordinated trees',
+      body: 'A **single** workspace is what the builder has always produced: one CLAUDE.md at the root of your project, stages in numbered folders, one workflow. A **multi-agent hub** adds a **master** coordinator that routes work to **agents/** — each agent is its own mini-workspace (its own CLAUDE.md, CONTEXT.md, stages, _config, skills) for a domain like leads, legal, or assets. You still define **stages** once; they apply to the hub and are copied into each agent as the same pipeline shape, while each agent has its own identity and routing trigger. Pick multi when one AI session should orchestrate several specialist contexts.'
+    }
   }
 ];
 
@@ -391,6 +405,17 @@ const STAGE_CONFIG_QUESTION = {
   }
 };
 
+// Shown only when workspace_layout === 'multi' — after stage_config
+const AGENTS_CONFIG_QUESTION = {
+  id: 'agents_config',
+  type: 'agents_builder',
+  label: 'Define your specialist agents (folder workspaces).',
+  teaching: {
+    title: 'Each row becomes agents/<slug>/…',
+    body: 'An **agent** here means a dedicated sub-workspace: its own CLAUDE.md, CONTEXT.md, the same stage folders you configured above, and its own _config and skill-starters. The **master** hub (master/) lists every agent and when to open them. Give each agent a clear **routing trigger** — the signal that work belongs in that folder (e.g. "CRM, leads, follow-ups" vs "contracts, compliance, counsel"). Use 2–6 agents. Slugs become folder names under agents/.'
+  }
+};
+
 // Export everything
 window.ICM = window.ICM || {};
 window.ICM.ARCHETYPES = ARCHETYPES;
@@ -398,3 +423,4 @@ window.ICM.UNIVERSAL_QUESTIONS = UNIVERSAL_QUESTIONS;
 window.ICM.ARCHETYPE_QUESTIONS = ARCHETYPE_QUESTIONS;
 window.ICM.VOICE_QUESTIONS = VOICE_QUESTIONS;
 window.ICM.STAGE_CONFIG_QUESTION = STAGE_CONFIG_QUESTION;
+window.ICM.AGENTS_CONFIG_QUESTION = AGENTS_CONFIG_QUESTION;

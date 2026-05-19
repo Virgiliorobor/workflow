@@ -5,8 +5,23 @@ window.ICM = window.ICM || {};
 window.ICM.app = (() => {
 
   // ── CONFIGURATION ──────────────────────────────────────────────────────────
-  // Override by setting window.ICM_BACKEND_URL before this script loads
-  const BACKEND_URL = (window.ICM_BACKEND_URL || 'http://localhost:8000').replace(/\/$/, '');
+  // Backend URL: 1) window.ICM_BACKEND_URL (e.g. set in index.html) 2) localStorage ICM_BACKEND_URL 3) default
+  // On Windows, port 8000 may fail with WinError 10013 — use PORT=8787 in backend/.env and set localStorage once:
+  //   localStorage.setItem('ICM_BACKEND_URL', 'http://localhost:8787'); location.reload()
+  function icmResolveBackendUrl() {
+    if (typeof window !== 'undefined' && window.ICM_BACKEND_URL) {
+      return String(window.ICM_BACKEND_URL).replace(/\/$/, '');
+    }
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const ls = localStorage.getItem('ICM_BACKEND_URL');
+        if (ls && String(ls).trim()) return String(ls).trim().replace(/\/$/, '');
+      }
+    } catch (e) { /* private mode */ }
+    return 'http://localhost:8000';
+  }
+  window.ICM_resolveBackendUrl = icmResolveBackendUrl;
+  const BACKEND_URL = icmResolveBackendUrl();
 
   // ── STATE ──────────────────────────────────────────────────────────────────
 
@@ -55,6 +70,7 @@ window.ICM.app = (() => {
         state.questionIndex = p.questionIndex || 0;
         state.questions = p.questions || [];
         state.answers = p.answers || {};
+        normalizeLoadedAnswers(state.answers);
         state.fileOverrides = p.fileOverrides || {};
         state.activeFile = p.activeFile || null;
       }
@@ -63,14 +79,51 @@ window.ICM.app = (() => {
 
   // ── QUESTION PIPELINE ──────────────────────────────────────────────────────
 
-  function buildQuestionList(archetype) {
+  function buildQuestionList() {
+    const archetype = state.answers.archetype || 'custom';
     const archetypeQs = window.ICM.ARCHETYPE_QUESTIONS[archetype] || window.ICM.ARCHETYPE_QUESTIONS.custom;
-    return [
+    const list = [
       ...window.ICM.UNIVERSAL_QUESTIONS,
       ...archetypeQs,
-      window.ICM.STAGE_CONFIG_QUESTION,
-      ...window.ICM.VOICE_QUESTIONS
+      window.ICM.STAGE_CONFIG_QUESTION
     ];
+    if ((state.answers.workspace_layout || 'single') === 'multi') {
+      list.push(window.ICM.AGENTS_CONFIG_QUESTION);
+    }
+    list.push(...window.ICM.VOICE_QUESTIONS);
+    return list;
+  }
+
+  /** Normalise workspace_layout and agents[] for generator + wizard (mutates object). */
+  function normalizeLoadedAnswers(answers) {
+    if (!answers || typeof answers !== 'object') return;
+    if (answers.workspace_layout !== 'single' && answers.workspace_layout !== 'multi') {
+      answers.workspace_layout = 'single';
+    }
+    if (answers.workspace_layout !== 'multi') {
+      return;
+    }
+    if (!Array.isArray(answers.agents)) answers.agents = [];
+    if (window.ICM && window.ICM.generator && typeof window.ICM.generator.sanitizeAgents === 'function') {
+      answers.agents = window.ICM.generator.sanitizeAgents(answers);
+    } else {
+      answers.agents = answers.agents
+        .filter(a => a != null && typeof a === 'object')
+        .map((a, i) => ({
+          id: String(i + 1).padStart(2, '0'),
+          slug: (a.slug || `agent-${i + 1}`).toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-|-$/g, '') || `agent-${i + 1}`,
+          label: (a.label || `Agent ${i + 1}`).trim() || `Agent ${i + 1}`,
+          description: a.description || '',
+          task: a.task || '',
+          note: a.note || ''
+        }))
+        .filter(a => a.slug && a.slug !== 'master' && a.slug !== 'agents')
+        .map((a, i) => ({ ...a, id: String(i + 1).padStart(2, '0') }));
+    }
+    if (answers.agents.length < 2) {
+      answers.workspace_layout = 'single';
+      delete answers.agents;
+    }
   }
 
   // ── SCREEN ROUTING ─────────────────────────────────────────────────────────
@@ -126,7 +179,7 @@ window.ICM.app = (() => {
       if (resumeBanner) {
         resumeBanner.classList.remove('hidden');
         document.getElementById('btn-resume').addEventListener('click', () => {
-          state.questions = buildQuestionList(state.answers.archetype);
+          state.questions = buildQuestionList();
           showScreen('wizard');
           renderQuestion();
         });
@@ -150,6 +203,7 @@ window.ICM.app = (() => {
         } else {
           throw new Error('Unrecognised format');
         }
+        normalizeLoadedAnswers(state.answers);
         state.generatedFilesBase = window.ICM.generator.generateAllFiles(state.answers);
         computeFinalFiles();
         showScreen('results');
@@ -202,7 +256,6 @@ window.ICM.app = (() => {
           task: '',
           note: ''
         }));
-        state.questions = buildQuestionList(archetype);
         state.questionIndex = 0;
         renderQuestion();
       });
@@ -212,6 +265,17 @@ window.ICM.app = (() => {
   // ── WIZARD ─────────────────────────────────────────────────────────────────
 
   function renderQuestion() {
+    state.questions = buildQuestionList();
+    const len = state.questions.length;
+    // Finished last question: index was incremented to len → generate (do not clamp back)
+    if (len > 0 && state.questionIndex === len) {
+      finishWizard();
+      return;
+    }
+    if (state.questionIndex >= len) {
+      state.questionIndex = Math.max(0, len - 1);
+    }
+
     const q = state.questions[state.questionIndex];
     if (!q) { finishWizard(); return; }
 
@@ -255,6 +319,9 @@ window.ICM.app = (() => {
     if (q.type === 'stage_builder') {
       initStageBuilder();
     }
+    if (q.type === 'agents_builder') {
+      initAgentsBuilder();
+    }
 
     document.getElementById('btn-back').addEventListener('click', () => {
       state.questionIndex = Math.max(0, state.questionIndex - 1);
@@ -280,12 +347,17 @@ window.ICM.app = (() => {
 
       case 'radio':
         return `<div class="q-radio-group" id="q-input">
-          ${q.options.map(opt => `
+          ${q.options.map(opt => {
+            const displayLabel = (q.optionLabels && q.optionLabels[opt]) || opt;
+            const raw = state.answers[q.id];
+            const val = raw !== undefined && raw !== '' ? raw : (q.id === 'workspace_layout' ? 'single' : '');
+            return `
             <label class="q-radio-label ${val === opt ? 'selected' : ''}">
               <input type="radio" name="q_radio" value="${escHtml(opt)}" ${val === opt ? 'checked' : ''}>
-              ${opt}
+              ${displayLabel}
             </label>
-          `).join('')}
+          `;
+          }).join('')}
         </div>`;
 
       case 'checkboxes': {
@@ -302,6 +374,9 @@ window.ICM.app = (() => {
 
       case 'stage_builder':
         return renderStageBuilderHTML();
+
+      case 'agents_builder':
+        return renderAgentsBuilderHTML();
 
       default:
         return `<input class="q-input" id="q-input" type="text" placeholder="${q.placeholder || ''}" value="${escHtml(val)}">`;
@@ -337,6 +412,125 @@ window.ICM.app = (() => {
     `;
   }
 
+  function renderAgentsBuilderHTML() {
+    const defaults = [
+      { id: '01', slug: 'leads', label: 'Lead management', description: '', task: 'CRM, leads, pipeline, follow-ups', note: '' },
+      { id: '02', slug: 'legal', label: 'Legal & compliance', description: '', task: 'Contracts, compliance, counsel', note: '' }
+    ];
+    if (window.ICM && window.ICM.generator && typeof window.ICM.generator.sanitizeAgents === 'function') {
+      const clean = window.ICM.generator.sanitizeAgents(state.answers);
+      state.answers.agents = clean.length >= 2 ? clean : defaults;
+    } else if (!Array.isArray(state.answers.agents) || state.answers.agents.length < 2) {
+      state.answers.agents = defaults;
+    } else {
+      state.answers.agents = state.answers.agents.filter(a => a != null && typeof a === 'object');
+      if (state.answers.agents.length < 2) state.answers.agents = defaults;
+    }
+    state.answers.agents.forEach((a, i) => { a.id = String(i + 1).padStart(2, '0'); });
+    const agents = state.answers.agents;
+    return `
+      <div class="stage-builder" id="q-input">
+        <p class="stage-builder-intro">Each row is one specialist folder under <code>agents/&lt;slug&gt;/</code> with a full ICM tree. <strong>Routing trigger</strong> tells the master hub when to open this agent.<br><small class="stage-builder-hint">Use 2–6 agents. Slugs must be unique — reserved: <code>master</code>, <code>agents</code>.</small></p>
+        <div class="stage-list" id="agent-list">
+          ${agents.map((a, i) => renderAgentRow(a, i, agents.length)).join('')}
+        </div>
+        <button class="btn-add-stage" id="btn-add-agent" ${agents.length >= 6 ? 'disabled' : ''}>
+          + Add agent
+        </button>
+      </div>
+    `;
+  }
+
+  function renderAgentRow(agent, index, totalAgents) {
+    const a = agent != null && typeof agent === 'object'
+      ? agent
+      : { label: '', slug: '', description: '', task: '', note: '' };
+    return `
+      <div class="stage-row agent-row" data-index="${index}">
+        <span class="stage-num">${String(index + 1).padStart(2, '0')}</span>
+        <input class="stage-name-input" type="text" placeholder="Agent display name" value="${escHtml(a.label)}" data-field="label">
+        <input class="stage-slug-input" type="text" placeholder="folder slug" value="${escHtml(a.slug)}" data-field="slug">
+        <input class="stage-desc-input" type="text" placeholder="One sentence: what this agent owns" value="${escHtml(a.description || '')}" data-field="description">
+        <button class="btn-remove-stage" data-index="${index}" ${totalAgents <= 2 ? 'disabled' : ''} title="Remove agent">×</button>
+        <input class="stage-task-input" type="text" placeholder="Routing trigger / signals (master table)" value="${escHtml(a.task || '')}" data-field="task">
+        <input class="stage-note-input" type="text" placeholder="Optional routing note" value="${escHtml(a.note || '')}" data-field="note">
+      </div>
+    `;
+  }
+
+  function rerenderAgentList() {
+    const list = document.getElementById('agent-list');
+    if (!list) return;
+    const agents = state.answers.agents;
+    list.innerHTML = agents.map((a, i) => renderAgentRow(a, i, agents.length)).join('');
+    const addBtn = document.getElementById('btn-add-agent');
+    if (addBtn) addBtn.disabled = agents.length >= 6;
+  }
+
+  function initAgentsBuilder() {
+    const builder = document.getElementById('q-input');
+    if (!builder) return;
+
+    builder.addEventListener('input', e => {
+      const row = e.target.closest('.agent-row');
+      if (!row) return;
+      const index = parseInt(row.dataset.index, 10);
+      const field = e.target.dataset.field;
+      if (!state.answers.agents[index]) return;
+
+      if (field === 'label') {
+        state.answers.agents[index].label = e.target.value;
+        const slugInput = row.querySelector('.stage-slug-input');
+        if (slugInput && !slugInput.dataset.manuallyEdited) {
+          const slug = e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+          slugInput.value = slug;
+          state.answers.agents[index].slug = slug;
+        }
+      }
+      if (field === 'slug') {
+        e.target.dataset.manuallyEdited = 'true';
+        state.answers.agents[index].slug = e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '');
+        e.target.value = state.answers.agents[index].slug;
+      }
+      if (field === 'description') state.answers.agents[index].description = e.target.value;
+      if (field === 'task') state.answers.agents[index].task = e.target.value;
+      if (field === 'note') state.answers.agents[index].note = e.target.value;
+      saveState();
+    });
+
+    builder.addEventListener('click', e => {
+      const removeBtn = e.target.closest('.btn-remove-stage');
+      if (removeBtn && removeBtn.closest('.agent-row')) {
+        if (state.answers.agents.length <= 2) {
+          showToast('You need at least 2 agents.', 'warning');
+          return;
+        }
+        const index = parseInt(removeBtn.dataset.index, 10);
+        state.answers.agents.splice(index, 1);
+        state.answers.agents.forEach((a, i) => { a.id = String(i + 1).padStart(2, '0'); });
+        rerenderAgentList();
+        saveState();
+        return;
+      }
+
+      const addBtn = e.target.closest('#btn-add-agent');
+      if (addBtn && !addBtn.disabled) {
+        if (state.answers.agents.length >= 6) return;
+        const num = state.answers.agents.length + 1;
+        state.answers.agents.push({
+          id: String(num).padStart(2, '0'),
+          slug: `agent-${num}`,
+          label: `Agent ${num}`,
+          description: '',
+          task: '',
+          note: ''
+        });
+        rerenderAgentList();
+        saveState();
+      }
+    });
+  }
+
   // Updates only the stage rows and the add-button disabled state.
   // The wrapper div (q-input) is never replaced, so event listeners on it persist.
   function rerenderStageList() {
@@ -355,7 +549,7 @@ window.ICM.app = (() => {
     // All input changes via delegation — persists across rerenderStageList calls
     builder.addEventListener('input', e => {
       const row = e.target.closest('.stage-row');
-      if (!row) return;
+      if (!row || row.classList.contains('agent-row')) return;
       const index = parseInt(row.dataset.index);
       const field = e.target.dataset.field;
       if (!state.answers.stages[index]) return;
@@ -383,7 +577,7 @@ window.ICM.app = (() => {
     // Remove and Add buttons via delegation on the same persistent wrapper
     builder.addEventListener('click', e => {
       const removeBtn = e.target.closest('.btn-remove-stage');
-      if (removeBtn) {
+      if (removeBtn && !removeBtn.closest('.agent-row')) {
         if (state.answers.stages.length <= 2) {
           showToast('You need at least 2 stages.', 'warning');
           return;
@@ -415,6 +609,31 @@ window.ICM.app = (() => {
   }
 
   function saveAnswer(q) {
+    if (q.type === 'agents_builder') {
+      state.answers.agents = (state.answers.agents || []).filter(a => a != null && typeof a === 'object');
+      state.answers.agents.forEach((a, i) => { a.id = String(i + 1).padStart(2, '0'); });
+      const agents = state.answers.agents;
+      if (agents.length < 2 || agents.length > 6) {
+        showToast('Use between 2 and 6 agents.', 'warning');
+        return false;
+      }
+      const invalid = agents.some(a => !a.label.trim() || !a.slug.trim());
+      if (invalid) {
+        showToast('Please give each agent a name and folder slug.', 'warning');
+        return false;
+      }
+      const slugs = agents.map(a => a.slug.trim().toLowerCase());
+      if (new Set(slugs).size !== slugs.length) {
+        showToast('Each agent needs a unique folder slug.', 'warning');
+        return false;
+      }
+      if (slugs.some(s => !s || s === 'master' || s === 'agents')) {
+        showToast('Slugs cannot be empty, "master", or "agents".', 'warning');
+        return false;
+      }
+      return true;
+    }
+
     if (q.type === 'stage_builder') {
       const stages = state.answers.stages || [];
       const invalid = stages.some(s => !s.label.trim() || !s.slug.trim());
@@ -427,11 +646,15 @@ window.ICM.app = (() => {
 
     if (q.type === 'radio') {
       const checked = document.querySelector('input[name="q_radio"]:checked');
-      if (!checked && q.required) {
-        showToast('Please select an option.', 'warning');
-        return false;
+      if (!checked) {
+        if (q.required) {
+          showToast('Please select an option.', 'warning');
+          return false;
+        }
+        state.answers[q.id] = q.id === 'workspace_layout' ? 'single' : '';
+      } else {
+        state.answers[q.id] = checked.value;
       }
-      state.answers[q.id] = checked ? checked.value : '';
     } else if (q.type === 'checkboxes') {
       const checked = [...document.querySelectorAll('#q-input input[type="checkbox"]:checked')].map(cb => cb.value);
       state.answers[q.id] = checked;
@@ -456,7 +679,7 @@ window.ICM.app = (() => {
   }
 
   function restoreInputValue(q) {
-    if (q.type === 'stage_builder' || q.type === 'radio' || q.type === 'checkboxes') return;
+    if (q.type === 'stage_builder' || q.type === 'agents_builder' || q.type === 'radio' || q.type === 'checkboxes') return;
     const input = document.getElementById('q-input');
     if (input && state.answers[q.id]) {
       input.value = state.answers[q.id];
@@ -494,9 +717,11 @@ window.ICM.app = (() => {
       answers.stages = [];
     }
 
+    normalizeLoadedAnswers(answers);
+
     state.answers = answers;
     state.fileOverrides = {};
-    state.questions = buildQuestionList(answers.archetype);
+    state.questions = buildQuestionList();
     state.questionIndex = 0;
     showScreen('wizard');
     renderQuestion();
@@ -505,11 +730,43 @@ window.ICM.app = (() => {
   // ── FINISH WIZARD ──────────────────────────────────────────────────────────
 
   function finishWizard() {
-    state.fileOverrides = {};  // clear any previous overrides on a fresh generation
-    state.generatedFilesBase = window.ICM.generator.generateAllFiles(state.answers);
-    computeFinalFiles();
-    showScreen('results');
-    renderResults();
+    const container = document.getElementById('wizard-content');
+    const isMulti = (state.answers.workspace_layout || 'single') === 'multi';
+    if (container) {
+      container.innerHTML = `
+        <div class="question-screen wizard-generating">
+          <div class="wizard-header">
+            <h2>Generating workspace…</h2>
+            <p class="wizard-subtitle">${isMulti
+              ? 'Multi-agent hubs create many files (master + each agent). This can take a few seconds — the page is not frozen.'
+              : 'Building your folder tree from your answers…'}</p>
+          </div>
+          <div class="generating-pulse" aria-hidden="true"></div>
+        </div>`;
+    }
+
+    const run = () => {
+      try {
+        state.fileOverrides = {};  // clear any previous overrides on a fresh generation
+        normalizeLoadedAnswers(state.answers);
+        state.generatedFilesBase = window.ICM.generator.generateAllFiles(state.answers);
+        computeFinalFiles();
+        showScreen('results');
+        renderResults();
+      } catch (e) {
+        state.questions = buildQuestionList();
+        state.questionIndex = Math.max(0, state.questions.length - 1);
+        showToast('Generation failed: ' + (e && e.message ? e.message : String(e)), 'error');
+        renderQuestion();
+      }
+    };
+
+    // Let the browser paint "Generating…" before synchronous generate (multi can block briefly)
+    if (typeof requestAnimationFrame === 'function') {
+      requestAnimationFrame(() => { requestAnimationFrame(run); });
+    } else {
+      setTimeout(run, 0);
+    }
   }
 
   // ── RESULTS SCREEN ─────────────────────────────────────────────────────────
@@ -531,7 +788,7 @@ window.ICM.app = (() => {
     document.getElementById('btn-home').addEventListener('click', () => showScreen('home'));
     document.getElementById('btn-edit').addEventListener('click', () => {
       state.questionIndex = 0;
-      state.questions = buildQuestionList(state.answers.archetype);
+      state.questions = buildQuestionList();
       showScreen('wizard');
       renderQuestion();
     });
@@ -643,6 +900,8 @@ window.ICM.app = (() => {
   }
 
   function getFileLayer(name, path) {
+    if (name === 'handoff.md') return 'Hub';
+    if (path.includes('/extras/')) return 'Extra';
     if (name === 'CLAUDE.md') return 'L0';
     if (name === 'CONTEXT.md' && !path.includes('/0')) return 'L1';
     if (name === 'CONTEXT.md' && /\/0\d_/.test(path)) return 'L2';
@@ -845,8 +1104,7 @@ window.ICM.app = (() => {
       };
 
       try {
-        const BACKEND = (window.ICM_BACKEND_URL || 'http://localhost:8000').replace(/\/$/, '');
-        const res = await fetch(`${BACKEND}/api/improve-skill`, {
+        const res = await fetch(`${BACKEND_URL}/api/improve-skill`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -1103,7 +1361,17 @@ ${constraints}
 
   function applyAIImprovements(improvedAnswers) {
     const savedOverrides = Object.assign({}, state.fileOverrides);
+    const prev = state.answers;
     state.answers = improvedAnswers;
+    if (state.answers.workspace_layout !== 'single' && state.answers.workspace_layout !== 'multi') {
+      state.answers.workspace_layout = prev.workspace_layout || 'single';
+    }
+    if (state.answers.workspace_layout === 'multi' &&
+        (!Array.isArray(state.answers.agents) || state.answers.agents.length < 2) &&
+        Array.isArray(prev.agents) && prev.agents.length >= 2) {
+      state.answers.agents = prev.agents;
+    }
+    normalizeLoadedAnswers(state.answers);
     state.generatedFilesBase = window.ICM.generator.generateAllFiles(state.answers);
     // Re-apply overrides (user edits survive regeneration)
     state.fileOverrides = savedOverrides;
@@ -1188,6 +1456,7 @@ ${constraints}
 
     if (state.screen === 'results' && Object.keys(state.answers).length > 0) {
       try {
+        normalizeLoadedAnswers(state.answers);
         state.generatedFilesBase = window.ICM.generator.generateAllFiles(state.answers);
         computeFinalFiles();
         showScreen('results');

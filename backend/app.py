@@ -168,6 +168,60 @@ _ARCHETYPE_STAGE_DEFAULTS: dict[str, list[tuple[str, str]]] = {
 }
 
 
+def _normalize_workspace_layout_and_agents(answers: dict[str, Any]) -> None:
+    """Ensure workspace_layout is valid; for multi, sanitize agents or fall back to single."""
+    layout = answers.get("workspace_layout")
+    if layout not in ("single", "multi"):
+        answers["workspace_layout"] = "single"
+
+    raw = answers.get("agents")
+    rows: list[Any] = []
+    if isinstance(raw, list):
+        rows = raw
+    elif isinstance(raw, dict):
+        keys = sorted((k for k in raw if str(k).isdigit()), key=lambda x: int(x))
+        rows = [raw[k] for k in keys]
+
+    agents: list[dict[str, Any]] = []
+    for i, a in enumerate(rows):
+        if not isinstance(a, dict):
+            continue
+        raw_slug = str(a.get("slug") or "").strip()
+        clean_slug = re.sub(r"[^a-z0-9\-]", "-", raw_slug.lower()).strip("-")[:32]
+        if not clean_slug:
+            clean_slug = re.sub(
+                r"[^a-z0-9\-]",
+                "-",
+                str(a.get("label") or f"agent-{i + 1}").lower(),
+            ).strip("-")[:24] or f"agent-{i + 1}"
+        if clean_slug in ("master", "agents"):
+            continue
+        label = str(a.get("label") or "").strip() or f"Agent {i + 1}"
+        agents.append(
+            {
+                "id": str(i + 1).zfill(2),
+                "slug": clean_slug,
+                "label": label,
+                "description": str(a.get("description") or ""),
+                "task": str(a.get("task") or ""),
+                "note": str(a.get("note") or ""),
+            }
+        )
+
+    agents = agents[:6]
+    for i, ag in enumerate(agents):
+        ag["id"] = str(i + 1).zfill(2)
+
+    if answers.get("workspace_layout") == "multi":
+        if len(agents) < 2:
+            answers["workspace_layout"] = "single"
+            answers.pop("agents", None)
+        else:
+            answers["agents"] = agents
+    else:
+        answers.pop("agents", None)
+
+
 def _call_claude_conversation(
     messages: list[dict], round_num: int
 ) -> FromConversationResponse:
@@ -182,7 +236,7 @@ def _call_claude_conversation(
 
     message = client.messages.create(
         model="claude-sonnet-4-6",
-        max_tokens=2048,
+        max_tokens=4096,
         system=system,
         messages=messages,
     )
@@ -258,6 +312,8 @@ def _call_claude_conversation(
             })
         stages = cleaned
     answers["stages"] = stages
+
+    _normalize_workspace_layout_and_agents(answers)
 
     # Required string fields — ensure they exist
     for field, default in [
