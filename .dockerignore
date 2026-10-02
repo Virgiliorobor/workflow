@@ -1,0 +1,7 @@
+# Build context = only the static wizard.
+*
+!Dockerfile
+!nginx.conf
+!index.html
+!css
+!js
